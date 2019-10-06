@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Authors>Maziar Rezaei</Authors>
+    <Company />
+    <Product>Productivity Extension Methods</Product>
+    <Description>Extension methods done right! A series of useful extension methods based on many BCL types and you can opt-in to enable in your solution. No more messy big junk classes!</Description>
+    <Copyright>Copyright 2019 Maziar Rezaei</Copyright>
+    <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/maziarrezaei/ProductivityExtensionMethods</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/maziarrezaei/ProductivityExtensionMethods</RepositoryUrl>
+    <PackageTags>ExtensionMethods Productivity</PackageTags>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Update="ProductivityExtension.methods.tt">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ProductivityExtension.tt</DependentUpon>
+    </None>
+    <None Update="ProductivityExtension.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ProductivityExtension.methods.tt</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+</Project>

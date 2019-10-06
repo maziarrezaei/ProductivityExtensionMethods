@@ -328,3 +328,7 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder 
 .mfractor/
+
+/nuget.exe
+/ProductivityExtensionMethods/ProductivityExtension.methods.tt
+/ProductivityExtensionMethods.*.zip
