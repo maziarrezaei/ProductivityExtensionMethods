@@ -18,8 +18,11 @@
 \<#@ import namespace="System.Collections.Generic" \#>
 \<#@ output extension=".cs" \#>
 \<#
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Modify next section in order to ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~To include the extension methods in the generated code.~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 <#
-
  string extensionMethodsSourceCode = File.ReadAllText(this.Host.ResolvePath("AllExtensions.cs"));
  
  Regex regionFinderRegex=new Regex(@"(?=#region\s+(?<RegionName>[^\r\n]+))(?:(?<ltparen>(?(content)(?(ltparen)#region\s+[^\r\n]*\r\n|)|#region\s+[^\r\n]*\r\n))|(?<content-ltparen>#endregion)|(?(ltparen)(?(#region\s+[^\r\n]*\r\n|#endregion)|.+?)|))+",  RegexOptions.IgnoreCase|  RegexOptions.Singleline|  RegexOptions.ExplicitCapture);
@@ -39,7 +42,12 @@
 #>
 bool <#=region.ConfigFlag#> = false;
 <#}#>
-
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~DO NOT MODIFY AFTER THIS SECTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~The changes will be overwritten when nuget package is restored~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~Use partial classes to add extra functionality~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//ToolsVersion:VersionPlaceholder{D8B1B561-500C-4086-91AA-0714457205DA}
 bool isNullableEnabled= IsNullableEnabled();
 \#>
 <#=extensionMethodsSourceCode.Substring(0,regionMatches[0].StartIndex).Replace("namespace ProductivityExtensionMethods","namespace \<#=System.Runtime.Remoting.Messaging.CallContext.LogicalGetData(\"NamespaceHint\")\#>")#>

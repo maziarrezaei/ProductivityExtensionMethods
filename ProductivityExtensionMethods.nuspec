@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>ProductivityExtensionMethods</id>
-    <version>1.0.0</version>
+    <version>1.0.0-beta.1</version>
     <authors>Maziar Rezaei</authors>
     <owners>Maziar Rezaei</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
@@ -16,12 +16,9 @@
     <dependencies>
       <group targetFramework=".NETStandard2.1" />
     </dependencies>
-    <contentFiles>
-      <!-- Include everything in the scripts folder except exe files -->
-      <files include="**/*"  buildAction="Content" copyToOutput="true" />
-    </contentFiles>
   </metadata>
   <files>
-    <file src="ProductivityExtensionMethods\ProductivityExtension.methods.tt" target="contentFiles/cs/any/ProductivityExtensions.tt" />
+    <file src="ProductivityExtensionMethods\ProductivityExtension.methods.tt" target="assets/ProductivityExtension.methods.tt" />
+    <file src="Init.ps1" target="tools\Init.ps1" />
   </files>
 </package>
