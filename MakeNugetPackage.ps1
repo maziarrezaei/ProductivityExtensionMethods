@@ -10,7 +10,7 @@ if (-not (Test-Path $t4FilePath -PathType Leaf))
 
 try
 {
-    $node = Select-Xml -Path .\ProductivityExtensionMethods.nuspec -XPath '/ns:package/ns:metadata/ns:version' -Namespace @{ns = 'http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd' }
+    $node = Select-Xml -Path .\ProductivityExtensionMethods.nuspec -XPath '/package/metadata/version';
     $version = $node.Node.InnerXML;
 
     if ([String]::IsNullOrWhiteSpace($version))
