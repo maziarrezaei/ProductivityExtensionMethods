@@ -70,9 +70,7 @@ function EnsureFileAddedToProject([String] $filePath, $project)
     }
 }
 
-$toolsDir=[Path]::GetDirectoryName($toolsPath);
-
-$packageT4Path = "$toolsDir\..\assets\ProductivityExtension.methods.tt";
+$packageT4Path = "$toolsPath\..\assets\ProductivityExtension.methods.tt";
 
 $t4Path = [Path]::Combine([Path]::GetDirectoryName($project.Properties.Item('FullPath').Value), "ProductivityExtensions.tt");
 
@@ -80,7 +78,7 @@ if (Test-Path $t4Path -PathType Leaf)
 {
     #read the file, and only overwrite the code section
     $currentT4File = ParseT4Content (Get-Content $t4Path -Raw)
-    $packageT4File = ParseT4Content (Get-Content $packageT4Path -ra);
+    $packageT4File = ParseT4Content (Get-Content $packageT4Path -Raw);
 
     
     if ($currentT4File.Version -ne $packageT4File.Version)
