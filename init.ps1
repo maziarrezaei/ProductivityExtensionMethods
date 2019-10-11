@@ -3,7 +3,7 @@ param($installPath, $toolsPath, $package, $project)
 
 function ParseT4Content([String] $content)
 {
-    $regEx = [regex] '//ToolsVersion:(?<Version>(?:\d+\.){2}\d+)';
+    $regEx = [regex] '(?inm-s)//ToolsVersion:(?<Version>(?:\d+\.){2}\d+(\.[\w|\d]+\.(\d+\.)*\d+)?)\s*$';
 
     $match = $regEx.Match($content);
 
@@ -70,6 +70,17 @@ function EnsureFileAddedToProject([String] $filePath, $project)
     }
 }
 
+if(-not $project)
+{
+	# we are in an update scenario. For some stupid reason, nuget in Visual Studio calls init.ps1 of the old version when it is removing it to install the updated version.
+	# it passes empty project, to make sure you have no clue what project is being updated either, so it's essentially useless. if not returning, 
+	# an exception in old init.ps1 will result in not running the init.ps1 of the new package, which makes me wonder. 
+	
+	Write-Host 'Exiting old version of the init.ps1'
+
+	exit 0;
+}
+
 $packageT4Path = "$toolsPath\..\assets\ProductivityExtension.methods.tt";
 
 $t4Path = [Path]::Combine([Path]::GetDirectoryName($project.Properties.Item('FullPath').Value), "ProductivityExtensions.tt");
@@ -83,7 +94,9 @@ if (Test-Path $t4Path -PathType Leaf)
     
     if ($currentT4File.Version -ne $packageT4File.Version)
     {
-        $currentT4File.ConfigSection = ApplyOldConfigToNew -oldConfig $currentT4File.ConfigSection -newConfig $packageT4File.ConfigSection
+	    Write-Host 'The current T4 file is from another version. Porting configuration.'
+
+		$currentT4File.ConfigSection = ApplyOldConfigToNew -oldConfig $currentT4File.ConfigSection -newConfig $packageT4File.ConfigSection
     }
 
     Set-Content $t4Path -Value ($currentT4File.ConfigSection + $packageT4File.CodeSection)
