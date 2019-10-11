@@ -10,7 +10,7 @@ using System.Collections.Concurrent;
 
 namespace ProductivityExtensionMethods
 {
-	[global::System.CodeDom.Compiler.GeneratedCode("ProductivityExtensionMethods", "1.0.0")]
+	[global::System.CodeDom.Compiler.GeneratedCode("ProductivityExtensionMethods", "VersionPlaceholder{D8B1B561-500C-4086-91AA-0714457205DA}")]
 	public static partial class ProductivityExtensions
 	{
 		#region Extensions Affecting All Types
@@ -49,7 +49,7 @@ namespace ProductivityExtensionMethods
 		}
 		#endregion
 
-		#region String and StringBuilder Extenders
+		#region String and StringBuilder Extensions
 		/// <summary>
 		/// Executes the String.IsNullOrWhiteSpace on the current string
 		/// </summary>
@@ -586,7 +586,7 @@ namespace ProductivityExtensionMethods
 		}
 		#endregion
 
-		#region IEnumerable Extension Methods
+		#region IEnumerable Extensions
 		public static IEnumerable<T> Append<T>(this IEnumerable<T> enumeration, T item)
 		{
 			return enumeration.Concat(Enumerable.Repeat(item, 1));

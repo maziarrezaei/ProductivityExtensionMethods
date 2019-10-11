@@ -1,6 +1,18 @@
 cd $PSScriptRoot
 
-$t4FilePath = '.\ProductivityExtensionMethods\ProductivityExtension.methods.tt';
+$masterT4Path='..\ProductivityExtensionMethods\ProductivityExtension.tt'
+$t4FilePath = '..\ProductivityExtensionMethods\ProductivityExtension.methods.tt';
+$nuspcPath = '..\ProductivityExtensionMethods.nuspec'
+
+
+.\ExecTextTransform.ps1 $masterT4Path
+
+if($LASTEXITCODE -ne 0)
+{
+	Write-Error 'Could not regenerate T4 template. Cannot continue.'
+	exit $LASTEXITCODE;
+}
+
 
 if (-not (Test-Path $t4FilePath -PathType Leaf))
 {
@@ -10,7 +22,7 @@ if (-not (Test-Path $t4FilePath -PathType Leaf))
 
 try
 {
-    $node = Select-Xml -Path .\ProductivityExtensionMethods.nuspec -XPath '/package/metadata/version';
+    $node = Select-Xml -Path $nuspcPath -XPath '/package/metadata/version';
     $version = $node.Node.InnerXML;
 
     if ([String]::IsNullOrWhiteSpace($version))
@@ -39,11 +51,11 @@ Set-Content $t4FilePath -Value $fileContent
 
 if (Test-Path './nuget.exe')
 {
-    ./nuget pack ProductivityExtensionMethods.nuspec
+    ./nuget pack $nuspcPath -OutputDirectory '..\'
 }
 elseif (Get-Command nuget -ErrorAction SilentlyContinue)
 {
-    nuget pack ProductivityExtensionMethods.nuspec
+    nuget pack $nuspcPath -OutputDirectory '..\'
 }
 else
 {

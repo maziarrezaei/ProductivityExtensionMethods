@@ -3,7 +3,7 @@ param($installPath, $toolsPath, $package, $project)
 
 function ParseT4Content([String] $content)
 {
-    $regEx = [regex] '(?inm-s)//ToolsVersion:(?<Version>(?:\d+\.){2}\d+(\.[\w|\d]+\.(\d+\.)*\d+)?)\s*$';
+    $regEx = [regex] '(?inm-s)//ToolsVersion:(?<Version>(?:\d+\.){2}\d+(-[\w|\d]+\.(\d+\.)*\d+)?)\s*$';
 
     $match = $regEx.Match($content);
 
@@ -18,8 +18,6 @@ function ParseT4Content([String] $content)
         CodeSection   = $content.Substring($match.Index)
     };
 }
-
-
 
 function ApplyOldConfigToNew([String] $oldConfig, [String] $newConfig)
 {
@@ -89,8 +87,18 @@ if (Test-Path $t4Path -PathType Leaf)
 {
     #read the file, and only overwrite the code section
     $currentT4File = ParseT4Content (Get-Content $t4Path -Raw)
+
+	if(-not $currentT4File)
+	{
+		throw "Cannot read the version information in T4 file in project. Make sure the file is not tampered with in wrong ways."
+	}
+
     $packageT4File = ParseT4Content (Get-Content $packageT4Path -Raw);
 
+	if(-not $packageT4File)
+	{
+		throw "Cannot read the version information from the package. This should be a bug in package."
+	}
     
     if ($currentT4File.Version -ne $packageT4File.Version)
     {
