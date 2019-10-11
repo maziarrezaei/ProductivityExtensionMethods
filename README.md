@@ -2,6 +2,10 @@
 Extension methods done right! A series of useful extension methods based on many BCL types and you can opt-in to enable in your solution. No more messy big junk classes!
 
 **Currently only for C# language.**
+## How to install
+It is [available on nuget](https://www.nuget.org/packages/ProductivityExtensionMethods).
+
+After Referencing the package, it should create a [T4 Template](https://docs.microsoft.com/en-us/visualstudio/modeling/code-generation-and-t4-text-templates) file in your project that will generate a C# .cs file. Modify top section of the file to enable certain category of extension methods.
 
 ## How is it different from other Extension Method DLLs?
 This is NOT a DLL assembly! 
@@ -11,7 +15,7 @@ DLLs are not good, because:
 - It is an extra totally unnecessary addition to the deployment, especially if you need to deal with strong names and/or signing the assembly. This is especially not justified when you did not use the extension methods extensively.
 - Referencing such DLL adds in hundreds of extension methods that pollute your IntelliSense. No way to choose only what you need on a project-level basis. 
 - You need to add a reference in all your projects in the solution to have it available everywhere. Bad practice, on so many levels.
-- You may need to add an extra using statements in ALL your code files to have them available everywhere by default.
+- You may need to add an extra using statement in ALL your code files to make them available everywhere.
 
 ## How ProductivityExtensionMethods tackles the problem?
 - Referencing nuget package only adds one [T4 Template](https://docs.microsoft.com/en-us/visualstudio/modeling/code-generation-and-t4-text-templates) file to your project.
@@ -23,6 +27,10 @@ DLLs are not good, because:
 
 
 ## Important Notes
-- The generated class is in C#.
+- The generated class is in C#, so it only works in C# projects.
+- The C# code contains C#8 syntax for some categories.
 - This package is only tested for .net standard project in Visual Studio 16.3 though the implementation should work on other project types as well.
-- The C# code contains C#8 syntax.
+
+## Known Issues
+- If you reference the package but don't see any items added to your project, make sure the project was saved in the first place. This is a bug that will be fixed in a future versions.
+- If you removed the package for any reason, and immediately added the package again, no file will be added to the project. This is a bug in Visual Studio/Nuget that when you remove and immediately add again, the initialization script for the nuget package is not called. (Observed in Visual Studio 2019 16.3)
