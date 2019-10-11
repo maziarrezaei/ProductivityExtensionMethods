@@ -162,7 +162,7 @@ namespace ProductivityExtensionMethods
 		#endregion
 
 		#region Type Extensions
-		private static readonly ConcurrentDictionary<(Type closedType, Type openType), Type[]?> IsAClosedTypeOfCache = new ConcurrentDictionary<(Type closedType, Type openType), Type[]?>();
+		private static readonly ConcurrentDictionary<(Type closedType, Type openType), Type[]?/*nullableRef*/> IsAClosedTypeOfCache = new ConcurrentDictionary<(Type closedType, Type openType), Type[]?/*nullableRef*/>();
 
 		/// <summary>
 		/// For the purposes of this method, <paramref name="constructedGenericType"/> is considered a closed type of the non-constructed (i.e. open) <paramref name="openGenericType"/>, if an instance of <paramref name="constructedGenericType"/> can be casted to a closed type created from <paramref name="openGenericType"/> with the same generic type arguments that was involved with defining type A.
@@ -174,7 +174,7 @@ namespace ProductivityExtensionMethods
 		/// <param name="openGenericType">A generic type, without any type specification as parameters. A rule of thumb for such type is that one should be able to create a closed type of it by only providing a number of type parameters.</param>
 		/// <param name="genericTypeParameters">The parameters needed to create a closed type version of <paramref name="openGenericType"/> that an instance of <paramref name="constructedGenericType"/> can be casted to.</param>
 		/// <returns>If an instance of <paramref name="constructedGenericType"/> can be casted to a closed type created from <paramref name="openGenericType"/> with the same generic type arguments that was involved with defining <paramref name="constructedGenericType"/></returns>
-		public static bool IsAClosedTypeOf(this Type constructedGenericType, Type openGenericType, out Type[]? genericTypeParameters)
+		public static bool IsAClosedTypeOf(this Type constructedGenericType, Type openGenericType, out Type[]?/*nullableRef*/ genericTypeParameters)
 		{
 			if (constructedGenericType == null)
 				throw new ArgumentNullException(nameof(constructedGenericType));
@@ -203,7 +203,7 @@ namespace ProductivityExtensionMethods
 
 				if (key.openType.IsInterface)
 				{
-					Type? ty = key.closedType.GetInterface(key.openType.FullName);
+					Type?/*nullableRef*/ ty = key.closedType.GetInterface(key.openType.FullName);
 
 					if (ty != null)
 						return ty.GetGenericArguments();
@@ -213,7 +213,7 @@ namespace ProductivityExtensionMethods
 				}
 
 				Type[] genericArgsOfType;
-				Type? currentBaseType = key.closedType;
+				Type?/*nullableRef*/ currentBaseType = key.closedType;
 
 				while (true)
 				{
@@ -227,7 +227,7 @@ namespace ProductivityExtensionMethods
 
 					genericArgsOfType = currentBaseType.GetGenericArguments();
 
-					if (key.openType.TryMakeGenericType(out Type? newGenType, genericArgsOfType) && newGenType != null && newGenType.IsAssignableFrom(currentBaseType))
+					if (key.openType.TryMakeGenericType(out Type?/*nullableRef*/ newGenType, genericArgsOfType) && newGenType != null && newGenType.IsAssignableFrom(currentBaseType))
 						return genericArgsOfType;
 
 				}
@@ -244,7 +244,7 @@ namespace ProductivityExtensionMethods
 		/// <param name="resultType">The constructed generic type.</param>
 		/// <param name="typePrms">The type parameters</param>
 		/// <returns></returns>
-		public static bool TryMakeGenericType(this Type genType, out Type? resultType, params Type[] typePrms)
+		public static bool TryMakeGenericType(this Type genType, out Type?/*nullableRef*/ resultType, params Type[] typePrms)
 		{
 			resultType = null;
 			try
