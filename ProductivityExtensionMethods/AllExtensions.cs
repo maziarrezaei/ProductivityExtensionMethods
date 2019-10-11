@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Collections;
 using System.Reflection;
+using System.Collections.Concurrent;
 
 namespace ProductivityExtensionMethods
 {
@@ -50,7 +51,7 @@ namespace ProductivityExtensionMethods
 
 		#region String and StringBuilder Extenders
 		/// <summary>
-		/// Executes the String.IsNullOrEmpty on the current string
+		/// Executes the String.IsNullOrWhiteSpace on the current string
 		/// </summary>
 		/// <returns>True if either empty, white space or null</returns>
 		public static bool IsBlank(this String str)
@@ -116,10 +117,6 @@ namespace ProductivityExtensionMethods
 		{
 			return LimitLength(source, maxLength, false);
 		}
-		public static void Clear(this StringBuilder stb)
-		{
-			stb.Remove(0, stb.Length);
-		}
 		#endregion
 
 		#region Event Extensions
@@ -165,60 +162,102 @@ namespace ProductivityExtensionMethods
 		#endregion
 
 		#region Type Extensions
-		private static readonly Dictionary<string, bool> IsAClosedTypeOfCache = new Dictionary<string, bool>();
-		public static bool IsAClosedTypeOf(this Type type, Type openType)
+		private static readonly ConcurrentDictionary<(Type closedType, Type openType), Type[]?> IsAClosedTypeOfCache = new ConcurrentDictionary<(Type closedType, Type openType), Type[]?>();
+
+		/// <summary>
+		/// For the purposes of this method, <paramref name="constructedGenericType"/> is considered a closed type of the non-constructed (i.e. open) <paramref name="openGenericType"/>, if an instance of <paramref name="constructedGenericType"/> can be casted to a closed type created from <paramref name="openGenericType"/> with the same generic type arguments that was involved with defining type A.
+		/// For example, IDictionary<![CDATA[<string,string>]]> is a closed type of IDictionary<![CDATA[<,>]]>.
+		/// Also, When a type implements, or inherits from a generic type. For example, a class that implements IDictionary and is a closed type is considered a closed type of, since it is assignable to IDictionary.
+		/// Refer to <see cref="https://docs.microsoft.com/en-us/dotnet/framework/reflection-and-codedom/reflection-and-generic-types"/> for detailed definition of open and closed generic types.
+		/// </summary>
+		/// <param name="constructedGenericType">Any type can be passed to be examined, however the type must be a closed generic type, or a non generic type.</param>
+		/// <param name="openGenericType">A generic type, without any type specification as parameters. A rule of thumb for such type is that one should be able to create a closed type of it by only providing a number of type parameters.</param>
+		/// <param name="genericTypeParameters">The parameters needed to create a closed type version of <paramref name="openGenericType"/> that an instance of <paramref name="constructedGenericType"/> can be casted to.</param>
+		/// <returns>If an instance of <paramref name="constructedGenericType"/> can be casted to a closed type created from <paramref name="openGenericType"/> with the same generic type arguments that was involved with defining <paramref name="constructedGenericType"/></returns>
+		public static bool IsAClosedTypeOf(this Type constructedGenericType, Type openGenericType, out Type[]? genericTypeParameters)
 		{
-			if (type == null)
-				throw new ArgumentNullException(nameof(type));
+			if (constructedGenericType == null)
+				throw new ArgumentNullException(nameof(constructedGenericType));
 
-			if (openType == null)
-				throw new ArgumentNullException(nameof(openType));
+			if (openGenericType == null)
+				throw new ArgumentNullException(nameof(openGenericType));
 
-			lock (IsAClosedTypeOfCache)
+			if (constructedGenericType.IsGenericTypeDefinition || constructedGenericType.ContainsGenericParameters)
+				throw new ArgumentException($"All generic parameters must be assigned and each generic parameter must be a non generic type or a closed generic type. Supplied type:" + constructedGenericType.ToString(), nameof(constructedGenericType));
+
+			if (!openGenericType.ContainsGenericParameters)
+				throw new ArgumentException($"Parameter supplied does not refer to an open generic type definition. Supplied type: {openGenericType} ", nameof(openGenericType));
+
+			if (!openGenericType.IsGenericTypeDefinition)
+				throw new ArgumentException($"Parameter supplied does not refer to a generic type definition. Though the type {openGenericType} is an open type, but it not directly closable by suppling a pre-defined list of type parameters."
+											+ "For example, you can never supply type parameters to type.MakeGenericType(...) when the type is typeof(Dictionary<string,List<>>). Such"
+											+ "types can only be created through reflection and no language allows creation of such types using literal type specification such as the example.", nameof(openGenericType));
+
+
+			var keyToFind = (constructedGenericType, openGenericType);
+
+			genericTypeParameters = IsAClosedTypeOfCache.GetOrAdd(keyToFind, (key, arg) =>
 			{
-				bool result;
-				string key = type.FullName + "," + openType.FullName;
-				if (IsAClosedTypeOfCache.TryGetValue(key, out result))
-					return result;
-				result = true;
-				if (openType.IsGenericTypeDefinition || type.ContainsGenericParameters)
+				if (key.openType.FullName == null)
+					throw new ArgumentException("The instance represents a generic type parameter, an array type, pointer type, or byref type based on a type parameter", nameof(openGenericType));
+
+				if (key.openType.IsInterface)
 				{
-					Type[] genericArgsOfType;
-					while (true)
-					{
-						while (!type.IsGenericType)
-						{
-							type = type.BaseType;
-							if (type == null || type == typeof(object))
-							{
-								result = false;
-								break;
-							}
-						}
-						if (!result)
-							break;
+					Type? ty = key.closedType.GetInterface(key.openType.FullName);
 
+					if (ty != null)
+						return ty.GetGenericArguments();
 
-#pragma warning disable CS8602 // Dereference of a possibly null reference.
-						genericArgsOfType = type.GetGenericArguments();
-#pragma warning restore CS8602
-
-						try
-						{
-							result = genericArgsOfType.Length == openType.GetGenericArguments().Length &&
-									 openType.MakeGenericType(genericArgsOfType).IsAssignableFrom(type);
-							break;
-						}
-						catch
-						{
-							result = false;
-							break;
-						}
-
-					}
+					// The .GetInterface() does not handle simple cases like IDic<string,string> against IDic<,>, so we'll let it go through
+					// regular type check as if it's not an interface
 				}
-				IsAClosedTypeOfCache.Add(key, result);
-				return result;
+
+				Type[] genericArgsOfType;
+				Type? currentBaseType = key.closedType;
+
+				while (true)
+				{
+					while (!currentBaseType.IsGenericType)
+					{
+						currentBaseType = currentBaseType.BaseType;
+
+						if (currentBaseType == null || currentBaseType == typeof(object))
+							return null;
+					}
+
+					genericArgsOfType = currentBaseType.GetGenericArguments();
+
+					if (key.openType.TryMakeGenericType(out Type? newGenType, genericArgsOfType) && newGenType != null && newGenType.IsAssignableFrom(currentBaseType))
+						return genericArgsOfType;
+
+				}
+			}, default(object));
+
+			return genericTypeParameters != null;
+
+		}
+
+		/// <summary>
+		/// A version of Type.MakeGenericType that does not throw exception. 
+		/// </summary>
+		/// <param name="genType">The type to construct a generic type from.</param>
+		/// <param name="resultType">The constructed generic type.</param>
+		/// <param name="typePrms">The type parameters</param>
+		/// <returns></returns>
+		public static bool TryMakeGenericType(this Type genType, out Type? resultType, params Type[] typePrms)
+		{
+			resultType = null;
+			try
+			{
+				if (genType.GetGenericArguments().Length != typePrms.Length)
+					return false;
+
+				resultType = genType.MakeGenericType(typePrms);
+				return true;
+			}
+			catch
+			{
+				return false;
 			}
 		}
 
@@ -286,6 +325,7 @@ namespace ProductivityExtensionMethods
 				list.Add(obj);
 				return true;
 			}
+
 			return false;
 		}
 		public static bool AddUnique<T>(this IList<T> list, T obj, IEqualityComparer<T> comparer)
@@ -295,6 +335,7 @@ namespace ProductivityExtensionMethods
 				list.Add(obj);
 				return true;
 			}
+
 			return false;
 		}
 		public static bool AddUnique<T>(this IList<T> list, T obj, Func<T, T, bool> comparer)
@@ -369,6 +410,7 @@ namespace ProductivityExtensionMethods
 		{
 			if (Enum.IsDefined(typeof(T), v))
 				return (T)Enum.ToObject(typeof(T), v);
+
 			throw new InvalidCastException($"Cannot cast value {v} to enum type {typeof(T)}");
 		}
 		public static bool TryToEnum<T>(this int v, out T e) where T : Enum
@@ -393,6 +435,7 @@ namespace ProductivityExtensionMethods
 		{
 			int cLower = actual.CompareTo(lower);
 			int cUpper = actual.CompareTo(upper);
+
 			return (cLower > 0 || (lowerInclusive && cLower == 0)) && (cUpper < 0 || (upperInclusive && cUpper == 0));
 		}
 		public static T LimitH<T>(this T value, T maximum) where T : notnull, IComparable
@@ -405,9 +448,12 @@ namespace ProductivityExtensionMethods
 		}
 		public static T Limit<T>(this T d, T min, T max) where T : notnull, IComparable
 		{
-			if (d.CompareTo(min) < 0) return min;
-			else if (d.CompareTo(max) > 0) return max;
-			else return d;
+			if (d.CompareTo(min) < 0)
+				return min;
+			else if (d.CompareTo(max) > 0)
+				return max;
+			else
+				return d;
 		}
 		#endregion
 
@@ -653,11 +699,16 @@ namespace ProductivityExtensionMethods
 				_ => new Dictionary<TKey, TreeNode<TEntity, TKey, TNode>>(keycomparer)
 			};
 
-			Dictionary<TKey, List<TreeNode<TEntity, TKey, TNode>>> orphanage = new Dictionary<TKey, List<TreeNode<TEntity, TKey, TNode>>>(keycomparer);
+			var orphanage = new Dictionary<TKey, List<TreeNode<TEntity, TKey, TNode>>>(keycomparer);
+
 			TreeNode<TEntity, TKey, TNode> node, parentNode;
-			List<TreeNode<TEntity, TKey, TNode>> explicitNoParentItems = new List<TreeNode<TEntity, TKey, TNode>>();
+
+			var explicitNoParentItems = new List<TreeNode<TEntity, TKey, TNode>>();
+
 			List<TreeNode<TEntity, TKey, TNode>> orphanageRoom;
+
 			TNode?/*nullableRef*/ castedNode;
+
 			foreach (var v in source)
 			{
 				if (v == null)
@@ -670,6 +721,7 @@ namespace ProductivityExtensionMethods
 				node = new TreeNode<TEntity, TKey, TNode>();
 
 				node.Node = castedNode;
+
 				TKey? nodeKey = getKey(v);
 				if (!nodeKey.HasValue)
 					continue;
@@ -677,8 +729,7 @@ namespace ProductivityExtensionMethods
 				node.NodeKey = nodeKey.Value;
 				node.ParentKey = getParentKey(v);
 
-				//finding parent of node
-
+				//finding parent of the node
 				if (node.ParentKey.HasValue)
 				{
 					if (parents.TryGetValue(node.ParentKey.Value, out parentNode))
@@ -705,6 +756,7 @@ namespace ProductivityExtensionMethods
 				{
 					foreach (var v2 in orphanageRoom)
 						firstIsParentOfSecond(node.Node, v2.Node);
+
 					orphanage.Remove(node.NodeKey);//there would be no more orphans for this parent, so removing the orphanage room
 				}
 
@@ -712,10 +764,9 @@ namespace ProductivityExtensionMethods
 			}
 
 			return (from node2 in explicitNoParentItems select node2.Node)
-					.Concat(
-					from room in orphanage.Values
-					from node3 in room
-					select node3.Node);
+					.Concat(from room in orphanage.Values
+							from node3 in room
+							select node3.Node);
 		}
 
 		private class TreeNode<TEntity, TKey, TNode> where TKey : struct
