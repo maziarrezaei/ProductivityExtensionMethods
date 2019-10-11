@@ -120,7 +120,7 @@ namespace ProductivityExtensionMethods
 		#endregion
 
 		#region Event Extensions
-		public static void RaiseEventOnUIThread<TEventArgs>(this EventHandler<TEventArgs> eventHandler, object sender, TEventArgs e)
+		public static void TryRaiseEventOnUIThread<TEventArgs>(this EventHandler<TEventArgs> eventHandler, object sender, TEventArgs e)
 		   where TEventArgs : EventArgs
 		{
 			if (eventHandler != null)
@@ -140,7 +140,7 @@ namespace ProductivityExtensionMethods
 				}
 			}
 		}
-		public static void RaiseEventOnUIThread(this EventHandler eventHandler, object sender, EventArgs e)
+		public static void TryRaiseEventOnUIThread(this EventHandler eventHandler, object sender, EventArgs e)
 		{
 			if (eventHandler != null)
 			{
@@ -283,7 +283,7 @@ namespace ProductivityExtensionMethods
 			else
 				list.RemoveAt(index);
 		}
-		public static int RemoveAllFast<T>(this IList<T> list, Func<T, bool> predicate)
+		public static int RemoveAllFast<T>(this IList<T> list, Predicate<T> predicate)
 		{
 			int counter = 0;
 			T item;
@@ -368,10 +368,10 @@ namespace ProductivityExtensionMethods
 			if (sourceIndex == destinationIndex)
 				return;
 
-			if (!sourceIndex.Between(0, list.Count - 1))
+			if (sourceIndex < 0 || sourceIndex > list.Count - 1)
 				throw new IndexOutOfRangeException($"{nameof(sourceIndex)} is out of range.");
 
-			if (!destinationIndex.Between(0, list.Count - 1))
+			if (destinationIndex < 0 || destinationIndex > list.Count - 1)
 				throw new IndexOutOfRangeException($"{nameof(sourceIndex)} is out of range.");
 
 			T item = list[sourceIndex];
@@ -381,7 +381,7 @@ namespace ProductivityExtensionMethods
 
 			list.Insert(destinationIndex, item);
 		}
-		public static int RemoveAll<T>(this IList<T> list, Func<T, bool> predicate)
+		public static int RemoveAll<T>(this IList<T> list, Predicate<T> predicate)
 		{
 			if (list is List<T> l) //List<T> may have a better performance
 				return l.RemoveAll(predicate);
