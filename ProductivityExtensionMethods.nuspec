@@ -12,7 +12,7 @@
     <description>Extension methods done right! A series of useful extension methods based on many BCL types and you can opt-in to enable in your solution. No more messy big junk classes!</description>
     <copyright>Copyright 2019 Maziar Rezaei</copyright>
     <tags>ExtensionMethods Productivity</tags>
-    <repository url="https://github.com/maziarrezaei/ProductivityExtensionMethods" />
+    <repository type="git" url="git@github.com:maziarrezaei/ProductivityExtensionMethods.git" branch="master" commit="1.0.0-beta.3"/>
     <dependencies>
       <group targetFramework=".NETStandard2.1" />
     </dependencies>
