@@ -11,7 +11,7 @@
     <projectUrl>https://github.com/maziarrezaei/ProductivityExtensionMethods</projectUrl>
     <description>Extension methods done right!  A select set of extension methods on some core .net class library types with the mindset to keep it minimal to be able to standardize in any team. Enabled by the different approach to distribution, you will be able to turn off the subset of methods that you are not likely to use in your project or standardize in your team. No more big messy extension classes with hundreds of extension methods that you will never use!</description>
     <copyright>Copyright 2019 Maziar Rezaei</copyright>
-    <tags>ExtensionMethods Productivity</tags>
+    <tags>ExtensionMethods Productivity Extension Methods C#</tags>
     <repository type="git" url="https://github.com/maziarrezaei/ProductivityExtensionMethods.git" branch="master" commit="1.0.0-beta.4"/>
     <releaseNotes>In version 1.0.0-beta.4, Many issues have been fixed with visual studio nuget integration.
 If currently referencing any version below, uninstall the package, restart visual studio, and install the latest package.
