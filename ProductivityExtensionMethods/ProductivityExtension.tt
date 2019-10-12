@@ -48,7 +48,6 @@ bool <#=region.ConfigFlag#> = false;
 //~~~~~~~~~~~~~~~~~~~~~~~~Use partial classes to add extra functionality~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //ToolsVersion:VersionPlaceholder{D8B1B561-500C-4086-91AA-0714457205DA}
-bool isNullableEnabled= IsNullableEnabled();
 \#>
 <#=extensionMethodsSourceCode.Substring(0,regionMatches[0].StartIndex).Replace("namespace ProductivityExtensionMethods","namespace \<#=System.Runtime.Remoting.Messaging.CallContext.LogicalGetData(\"NamespaceHint\")\#>")#>
 <#foreach(var region in regionMatches)
@@ -56,22 +55,8 @@ bool isNullableEnabled= IsNullableEnabled();
 #>\<#if(<#=region.ConfigFlag#>)
 {
 \#>
-<#=region.Code.Replace("?/*nullableRef*/","\<#=isNullableEnabled?\"?\":\"\"\#>")#>
+<#=region.Code#>
 \<#
 }
 \#>
 <#}#><#=extensionMethodsSourceCode.Substring(regionMatches.Last().EndIndex)#>
-
-\<#+
-private bool IsNullableEnabled()
-{
-EnvDTE.DTE visualStudio = (this.Host as IServiceProvider).GetService(typeof(EnvDTE.DTE)) as EnvDTE.DTE;
-var project = visualStudio.Solution.FindProjectItem(this.Host.TemplateFile).ContainingProject as EnvDTE.Project;
-string projectFile=Path.Combine(project.Properties.Item("FullPath").Value.ToString(),project.Properties.Item("FileName").Value.ToString());
-
-XDocument xDoc=XDocument.Load(projectFile);
-  
-string value = xDoc.Root.Element("PropertyGroup")?.Element("Nullable")?.Value;
-return value != null && value == "enable";
-}
-\#>

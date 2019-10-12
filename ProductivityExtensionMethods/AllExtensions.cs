@@ -8,6 +8,8 @@ using System.Collections;
 using System.Reflection;
 using System.Collections.Concurrent;
 
+#nullable enable
+
 namespace ProductivityExtensionMethods
 {
 	[global::System.CodeDom.Compiler.GeneratedCode("ProductivityExtensionMethods", "VersionPlaceholder{D8B1B561-500C-4086-91AA-0714457205DA}")]
@@ -16,16 +18,16 @@ namespace ProductivityExtensionMethods
 		#region Extensions Affecting All Types
 		public static bool In<T>(this T source, params T[] list)
 		{
-			return list.Contains(source, (IEqualityComparer<T>?/*nullableRef*/)null);
+			return list.Contains(source, (IEqualityComparer<T>?)null);
 		}
-		public static bool In<T>(this T source, Func<T, T, bool>?/*nullableRef*/ comparer, params T[] list)
+		public static bool In<T>(this T source, Func<T, T, bool>? comparer, params T[] list)
 		{
 			if (comparer == null)
-				return In(source, (IEqualityComparer<T>?/*nullableRef*/)null, list);
+				return In(source, (IEqualityComparer<T>?)null, list);
 
 			return list.Contains(source, new EqualityComparer<T>(comparer));
 		}
-		public static bool In<T>(this T source, IEqualityComparer<T>?/*nullableRef*/ comparer, params T[] list)
+		public static bool In<T>(this T source, IEqualityComparer<T>? comparer, params T[] list)
 		{
 			if (null == source)
 				throw new ArgumentNullException("source");
@@ -162,7 +164,7 @@ namespace ProductivityExtensionMethods
 		#endregion
 
 		#region Type Extensions
-		private static readonly ConcurrentDictionary<(Type closedType, Type openType), Type[]?/*nullableRef*/> IsAClosedTypeOfCache = new ConcurrentDictionary<(Type closedType, Type openType), Type[]?/*nullableRef*/>();
+		private static readonly ConcurrentDictionary<(Type closedType, Type openType), Type[]?> IsAClosedTypeOfCache = new ConcurrentDictionary<(Type closedType, Type openType), Type[]?>();
 
 		/// <summary>
 		/// For the purposes of this method, <paramref name="constructedGenericType"/> is considered a closed type of the non-constructed (i.e. open) <paramref name="openGenericType"/>, if an instance of <paramref name="constructedGenericType"/> can be casted to a closed type created from <paramref name="openGenericType"/> with the same generic type arguments that was involved with defining type A.
@@ -174,7 +176,7 @@ namespace ProductivityExtensionMethods
 		/// <param name="openGenericType">A generic type, without any type specification as parameters. A rule of thumb for such type is that one should be able to create a closed type of it by only providing a number of type parameters.</param>
 		/// <param name="genericTypeParameters">The parameters needed to create a closed type version of <paramref name="openGenericType"/> that an instance of <paramref name="constructedGenericType"/> can be casted to.</param>
 		/// <returns>If an instance of <paramref name="constructedGenericType"/> can be casted to a closed type created from <paramref name="openGenericType"/> with the same generic type arguments that was involved with defining <paramref name="constructedGenericType"/></returns>
-		public static bool IsAClosedTypeOf(this Type constructedGenericType, Type openGenericType, out Type[]?/*nullableRef*/ genericTypeParameters)
+		public static bool IsAClosedTypeOf(this Type constructedGenericType, Type openGenericType, out Type[]? genericTypeParameters)
 		{
 			if (constructedGenericType == null)
 				throw new ArgumentNullException(nameof(constructedGenericType));
@@ -203,7 +205,7 @@ namespace ProductivityExtensionMethods
 
 				if (key.openType.IsInterface)
 				{
-					Type?/*nullableRef*/ ty = key.closedType.GetInterface(key.openType.FullName);
+					Type? ty = key.closedType.GetInterface(key.openType.FullName);
 
 					if (ty != null)
 						return ty.GetGenericArguments();
@@ -213,7 +215,7 @@ namespace ProductivityExtensionMethods
 				}
 
 				Type[] genericArgsOfType;
-				Type?/*nullableRef*/ currentBaseType = key.closedType;
+				Type? currentBaseType = key.closedType;
 
 				while (true)
 				{
@@ -227,7 +229,7 @@ namespace ProductivityExtensionMethods
 
 					genericArgsOfType = currentBaseType.GetGenericArguments();
 
-					if (key.openType.TryMakeGenericType(out Type?/*nullableRef*/ newGenType, genericArgsOfType) && newGenType != null && newGenType.IsAssignableFrom(currentBaseType))
+					if (key.openType.TryMakeGenericType(out Type? newGenType, genericArgsOfType) && newGenType != null && newGenType.IsAssignableFrom(currentBaseType))
 						return genericArgsOfType;
 
 				}
@@ -244,7 +246,7 @@ namespace ProductivityExtensionMethods
 		/// <param name="resultType">The constructed generic type.</param>
 		/// <param name="typePrms">The type parameters</param>
 		/// <returns></returns>
-		public static bool TryMakeGenericType(this Type genType, out Type?/*nullableRef*/ resultType, params Type[] typePrms)
+		public static bool TryMakeGenericType(this Type genType, out Type? resultType, params Type[] typePrms)
 		{
 			resultType = null;
 			try
@@ -599,7 +601,7 @@ namespace ProductivityExtensionMethods
 		{
 			return Contains(sources, obj, comparer, null);
 		}
-		public static bool Contains<TSource>(this IEnumerable<TSource> sources, TSource obj, Func<TSource, TSource, bool> comparer, Func<TSource, int>?/*nullableRef*/ hash)
+		public static bool Contains<TSource>(this IEnumerable<TSource> sources, TSource obj, Func<TSource, TSource, bool> comparer, Func<TSource, int>? hash)
 		{
 			IEqualityComparer<TSource> equalityComparer = hash == null ? new EqualityComparer<TSource>(comparer) : new EqualityComparer<TSource>(comparer, hash);
 
@@ -667,7 +669,7 @@ namespace ProductivityExtensionMethods
 		/// <param name="firstIsParentOfSecond">The function to call whenever a child of a parent node is found.</param>
 		/// <remarks>The order of the operation is O(n) (yes, that's right)</remarks>
 		/// <returns>the IEnumerable of root TNodes</returns>
-		public static IEnumerable<TNode> ToHierarchy<TEntity, TKey, TNode>(this IEnumerable<TEntity> source, Func<TEntity, TNode?/*nullableRef*/> convertor, Func<TEntity, TKey?> getKey, Func<TEntity, TKey?> getParentKey, Action<TNode, TNode> firstIsParentOfSecond) where TKey : struct
+		public static IEnumerable<TNode> ToHierarchy<TEntity, TKey, TNode>(this IEnumerable<TEntity> source, Func<TEntity, TNode?> convertor, Func<TEntity, TKey?> getKey, Func<TEntity, TKey?> getParentKey, Action<TNode, TNode> firstIsParentOfSecond) where TKey : struct
 																																																													  where TNode : class
 																																																													  where TEntity : class
 		{
@@ -687,7 +689,7 @@ namespace ProductivityExtensionMethods
 		/// <param name="firstIsParentOfSecond">The function to call whenever a child of a parent node is found.</param>
 		/// <remarks>The order of the operation is O(n) (yes, that's right)</remarks>
 		/// <returns>the IEnumerable of root TNodes</returns>
-		public static IEnumerable<TNode> ToHierarchy<TEntity, TKey, TNode>(this IEnumerable<TEntity> source, IEqualityComparer<TKey>?/*nullableRef*/ keycomparer, Func<TEntity, TNode?/*nullableRef*/> convertor, Func<TEntity, TKey?> getKey, Func<TEntity, TKey?> getParentKey, Action<TNode, TNode> firstIsParentOfSecond) where TKey : struct
+		public static IEnumerable<TNode> ToHierarchy<TEntity, TKey, TNode>(this IEnumerable<TEntity> source, IEqualityComparer<TKey>? keycomparer, Func<TEntity, TNode?> convertor, Func<TEntity, TKey?> getKey, Func<TEntity, TKey?> getParentKey, Action<TNode, TNode> firstIsParentOfSecond) where TKey : struct
 																																																																							   where TNode : class
 																																																																							   where TEntity : class
 		{
@@ -707,7 +709,7 @@ namespace ProductivityExtensionMethods
 
 			List<TreeNode<TEntity, TKey, TNode>> orphanageRoom;
 
-			TNode?/*nullableRef*/ castedNode;
+			TNode? castedNode;
 
 			foreach (var v in source)
 			{
