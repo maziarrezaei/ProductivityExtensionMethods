@@ -10,7 +10,7 @@ After referencing the package, a [T4 Template](https://docs.microsoft.com/en-us/
 ## Important Notes
 - The generated class is in C#, so it only works in C# projects.
 - The C# code contains C#8 syntax for some categories.
-- This package is only tested for .net standard project in Visual Studio 16.3 though the implementation should work on other project types as well.
+- This package is only tested for all three target framework projects in Visual Studio 16.3.
 
 ## Known Issues
 - If you reference the package but don't see any items added to your project, make sure the project was saved in the first place. This is a bug that will be fixed in a future versions.
