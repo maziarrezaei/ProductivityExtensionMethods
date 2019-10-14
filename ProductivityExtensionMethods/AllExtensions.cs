@@ -620,9 +620,9 @@ namespace ProductivityExtensionMethods
 		/// <typeparam name="TElement"></typeparam>
 		/// <param name="source"></param>
 		/// <returns></returns>
-		public static Dictionary<TKey, IEnumerable<TElement>> ToDictionary<TKey, TElement>(this IEnumerable<IGrouping<TKey, TElement>> source)
+		public static Dictionary<TKey, TElement[]> ToDictionary<TKey, TElement>(this IEnumerable<IGrouping<TKey, TElement>> source)
 		{
-			return source.ToDictionary(it => it.Key, it => (IEnumerable<TElement>)it);
+			return source.ToDictionary(it => it.Key, it => it.ToArray());
 		}
 		/// <summary>
 		/// When doing group by, resulting IEnumerable is inherently a dictionary. This method conviniently converts it to an IDictionary.
@@ -633,13 +633,13 @@ namespace ProductivityExtensionMethods
 		/// <param name="keyComparer"></param>
 		/// <param name="keyHashCalculator"></param>
 		/// <returns></returns>
-		public static Dictionary<TKey, IEnumerable<TElement>> ToDictionary<TKey, TElement>(this IEnumerable<IGrouping<TKey, TElement>> source, Func<TKey, TKey, bool> keyComparer, Func<TKey, int> keyHashCalculator)
+		public static Dictionary<TKey, TElement[]> ToDictionary<TKey, TElement>(this IEnumerable<IGrouping<TKey, TElement>> source, Func<TKey, TKey, bool> keyComparer, Func<TKey, int> keyHashCalculator)
 		{
 			IEqualityComparer<TKey> equalityComparer = keyHashCalculator == null ? new EqualityComparer<TKey>(keyComparer) : new EqualityComparer<TKey>(keyComparer, keyHashCalculator);
 
 			var uniqueKeyGroupBy = source.GroupBy(grp => grp.Key, equalityComparer);
 
-			return uniqueKeyGroupBy.ToDictionary(it => it.Key, it => it.SelectMany(i => i), equalityComparer);
+			return uniqueKeyGroupBy.ToDictionary(it => it.Key, it => it.SelectMany(i => i).ToArray(), equalityComparer);
 		}
 
 
