@@ -589,14 +589,6 @@ namespace ProductivityExtensionMethods
 		#endregion
 
 		#region IEnumerable Extensions
-		public static IEnumerable<T> Append<T>(this IEnumerable<T> enumeration, T item)
-		{
-			return enumeration.Concat(Enumerable.Repeat(item, 1));
-		}
-		public static IEnumerable<T> Prepend<T>(this IEnumerable<T> enumeration, T item)
-		{
-			return Enumerable.Repeat(item, 1).Concat(enumeration);
-		}
 		public static bool Contains<TSource>(this IEnumerable<TSource> sources, TSource obj, Func<TSource, TSource, bool> comparer)
 		{
 			return Contains(sources, obj, comparer, null);
