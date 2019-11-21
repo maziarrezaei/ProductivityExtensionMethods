@@ -7,9 +7,6 @@
     <RootNamespace>MyApplication</RootNamespace>
     <AssemblyName>MyApplication</AssemblyName>
     <Name>PowershellScripts</Name>
-    <PackageEntryPoint>init.ps1</PackageEntryPoint>
-    <DotNetVersion>v4.7.2</DotNetVersion>
-    <PackageType>Console</PackageType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>

@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProductivityExtensionMethod
 EndProject
 Project("{F5034706-568F-408A-B7B3-4D38C6DB8A32}") = "PowershellScripts", "PowershellScripts\PowershellScripts.pssproj", "{6CAFC0C6-A428-4D30-A9F9-700E829FEA51}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodePreprocessor", "CodePreprocessor\CodePreprocessor.csproj", "{5DEADA4F-22FE-49D6-A4DA-311397E45BB9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{6CAFC0C6-A428-4D30-A9F9-700E829FEA51}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6CAFC0C6-A428-4D30-A9F9-700E829FEA51}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6CAFC0C6-A428-4D30-A9F9-700E829FEA51}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5DEADA4F-22FE-49D6-A4DA-311397E45BB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5DEADA4F-22FE-49D6-A4DA-311397E45BB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5DEADA4F-22FE-49D6-A4DA-311397E45BB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5DEADA4F-22FE-49D6-A4DA-311397E45BB9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

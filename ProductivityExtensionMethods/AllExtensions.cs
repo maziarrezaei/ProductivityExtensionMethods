@@ -429,7 +429,7 @@ namespace ProductivityExtensionMethods
 		#endregion
 
 		#region IComparable Extensions
-		public static bool Between<T>(this T actual, T inclusiveLower, T inclusiveUpper) where T : notnull, IComparable<T>
+		public static bool Between<T>(this T actual, T inclusiveLower, T inclusiveUpper) where T : notnull , IComparable<T>
 		{
 			return Between(actual, inclusiveLower, true, inclusiveUpper, true);
 		}

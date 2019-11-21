@@ -15,5 +15,7 @@ if(-not $commandFile)
 	Write-Error $"Cannot find T4 transformation command."
 	exit 2;
 }
-
+pushd .
+cd (Split-Path $T4Template)
 & $commandFile.FullName $T4Template
+popd
