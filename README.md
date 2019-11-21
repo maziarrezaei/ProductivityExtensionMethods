@@ -9,12 +9,15 @@ After referencing the package, a [T4 Template](https://docs.microsoft.com/en-us/
 
 ## Important Notes
 - The generated class is in C#, so it only works in C# projects.
-- The C# code contains C#8 syntax for some categories.
-- This package is only tested for all three target framework projects in Visual Studio 16.3.
+- The C# code contains C# 7.3 syntax in some categories. Make sure it is enabled in your project by going to Project Properties -> Build -> Advanced...
+- The C# code contains *Nullable Reference Type* feature available in C# 8. It will only be generated if Visual Studio 2019 is used.
+- This package is tested on latest versions of Visual Studio 2019/2017.
 
 ## Known Issues
-- If you reference the package but don't see any items added to your project, make sure the project was saved in the first place. This is a bug that will be fixed in a future versions.
-- If you removed the package for any reason, and immediately added the package again, no file will be added to the project. This is a bug in Visual Studio/Nuget that when you remove and immediately add again, the initialization script for the nuget package is not called. (Observed in Visual Studio 2019 16.3)
+- If you removed the package for any reason, and immediately added the package again, no file will be added to the project. This is a bug in Visual Studio/Nuget that when you remove and immediately add again, the initialization script for the nuget package is not called. (Observed in Visual Studio 2019/2017)
+- If package is added to one project, then immediately to another, the second project doesn't get the T4 template. This is due to the same bug as above and VS should be restarted between adds. 
+
+#FAQ 
 
 ## How is it different from other Extension Method DLLs?
 This is NOT a DLL assembly! 
@@ -39,6 +42,16 @@ The driving mindset in selection of the majority of the extension methods here, 
 With this philosophy, the possibility will be reserved to deprecate or even drop some methods between the major releases. This is the deeper philosophy behind why the library is distributed as source code. An upgrade won't break any binary and the developers can take the deleted method, in case they used it, and put it in their own partial class and keep it if they wish so. This way, the library becomes leaner over time, and can provide improved best practices as it evolves. 
 
 The second factor in picking/developing the methods is simply sharing some complex code that is likely to be used, but are not available anywhere else on the Internet. One example is the ToHierarchy() method for converting a flat list into a tree hierarchy which does it in a very unique way. However, such methods are the strangest to the core philosophy and you should not expect to see many of them in future releases. 
+
+## I like the approach, but I want to use it for my own extension methods. How is it possible?
+ProductivityExtensionMethods is design with this intention in mind. It is supposed to provide a guiding example of how this approach can be used and provides all the tools and automation needed to ease this task.
+
+- Fork the repository to your own repo.
+- You can remove all methods from AllExtensions.cs, and use your own. Categorize your methods using regions with proper names.
+- Use only C# 7.3 syntax, and Nullable Reference Type feature from C# 8.0 if you want compatibility with both VS 2019/17.
+- The ProductivityExtension.tt takes care of generating the final T4 template by reading AllExtensions.cs.
+- CodePreprocessor is a console application included to parse code and detect Nullable Reference Type syntax usage. This runs inside ProductivityExtension.tt
+- Use MakeNugetPackage.ps1 to generate your own nuget package with one click, after customizing ProductivityExtensionMethods.nuspec to meet your need.
 
 ## Ho can I contribute? I don't see the method that I like!
 Contributions are very welcome through either suggestions, sending code or even better pull requests. 
