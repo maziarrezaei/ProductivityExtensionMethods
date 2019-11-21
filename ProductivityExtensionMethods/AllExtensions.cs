@@ -693,15 +693,22 @@ namespace ProductivityExtensionMethods
 																																																																							   where TNode : class
 																																																																							   where TEntity : class
 		{
-			Dictionary<TKey, TreeNode<TEntity, TKey, TNode>> parents =
-			source switch
-			{
-				ICollection<TEntity> collection2 => new Dictionary<TKey, TreeNode<TEntity, TKey, TNode>>(collection2.Count, keycomparer),
-				ICollection collection => new Dictionary<TKey, TreeNode<TEntity, TKey, TNode>>(collection.Count, keycomparer),
-				_ => new Dictionary<TKey, TreeNode<TEntity, TKey, TNode>>(keycomparer)
-			};
+			Dictionary<TKey, TreeNode<TEntity, TKey, TNode>> parents;
 
-			var orphanage = new Dictionary<TKey, List<TreeNode<TEntity, TKey, TNode>>>(keycomparer);
+            switch (source)
+            {
+                case ICollection<TEntity> collection2:
+                    parents = new Dictionary<TKey, TreeNode<TEntity, TKey, TNode>>(collection2.Count, keycomparer);
+                    break;
+                case ICollection collection:
+                    parents = new Dictionary<TKey, TreeNode<TEntity, TKey, TNode>>(collection.Count, keycomparer);
+                    break;
+                default:
+                    parents = new Dictionary<TKey, TreeNode<TEntity, TKey, TNode>>(keycomparer);
+                    break;
+            }
+
+            var orphanage = new Dictionary<TKey, List<TreeNode<TEntity, TKey, TNode>>>(keycomparer);
 
 			TreeNode<TEntity, TKey, TNode> node, parentNode;
 
