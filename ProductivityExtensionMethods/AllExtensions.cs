@@ -7,6 +7,7 @@ using System.IO;
 using System.Collections;
 using System.Reflection;
 using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 
 #nullable enable
 
@@ -52,6 +53,16 @@ namespace ProductivityExtensionMethods
         #endregion
 
         #region String and StringBuilder Extensions
+#if (NETCOREAPP3_0 || NETCOREAPP3_1 || NETSTANDARD2_1)
+        /// <summary>
+        /// Executes the String.IsNullOrWhiteSpace on the current string
+        /// </summary>
+        /// <returns>True if either empty, white space or null</returns>
+        public static bool IsBlank([NotNullWhen(false)] this String str)
+        {
+            return string.IsNullOrWhiteSpace(str);
+        }
+#else
         /// <summary>
         /// Executes the String.IsNullOrWhiteSpace on the current string
         /// </summary>
@@ -60,6 +71,7 @@ namespace ProductivityExtensionMethods
         {
             return string.IsNullOrWhiteSpace(str);
         }
+#endif
         public static string SubstringAfter(this string input, string value)
         {
             int i = input.IndexOf(value);
