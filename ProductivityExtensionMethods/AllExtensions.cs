@@ -464,6 +464,85 @@ namespace ProductivityExtensionMethods
                 return counter;
             }
         }
+        public static void AddSorted<T>(this IList<T> list, T item) where T : IComparable<T>
+        {
+            if (list.Count == 0)
+            {
+                // Simple add
+                list.Add(item);
+            }
+            else if (item.CompareTo(list[list.Count - 1]) >= 0)
+            {
+                // Add to the end as the item being added is greater than the last item by comparison.
+                list.Add(item);
+            }
+            else if (item.CompareTo(list[0]) <= 0)
+            {
+                // Add to the front as the item being added is less than the first item by comparison.
+                list.Insert(0, item);
+            }
+            else
+            {
+                // Otherwise, search for the place to insert.
+                int index = BinarySearch(list, 0, list.Count, item);
+                if (index < 0)
+                {
+                    // The zero-based index of item if item is found; 
+                    // otherwise, a negative number that is the bitwise complement of the index of the next element that is larger than item or, if there is no larger element, the bitwise complement of Count.
+                    index = ~index;
+                }
+                list.Insert(index, item);
+            }
+        }
+
+        /// <summary>
+        /// Searches a section of an IList for a given element using a binary search algorithm. Elements of the array are compared to the search value using
+        /// the given comparer function. This method assumes that the list is already sorted; if this is not the case, the
+        /// result will be incorrect.
+        /// 
+        /// is larger than the given search value.
+        /// </summary>
+        /// <param name="list">The list to search in. It should contain sorted elements</param>
+        /// <param name="index">The index to start the search from</param>
+        /// <param name="length">The length starting the index that the search must be performed</param>
+        /// <param name="value">The value to find.</param>
+        /// <returns>
+        /// The index of the given value in the list. If the list does not contain the given value, the method returns a negative
+        /// integer. The bitwise complement operator (~) can be applied to a negative result to produce the index of the first element (if any) that
+        /// is larger than the given search value.
+        /// </returns>
+        public static int BinarySearch<T>(this IList<T> list, int index, int length, T value) where T : IComparable<T>
+        {
+            if (list == null)
+                throw new ArgumentNullException(nameof(list));
+
+            if (index < 0 || length < 0)
+                throw new ArgumentOutOfRangeException($"{index} or {length}", "Negative parameter is not acceptable");
+
+            if (list.Count - index < length)
+                throw new ArgumentException("The length of search is outside of the list, starting from the given index");
+
+            int lo = index;
+            int hi = index + length - 1;
+
+            while (lo <= hi)
+            {
+                // i might overflow if lo and hi are both large positive numbers. 
+                int i = lo + ((hi - lo) >> 1);
+
+                int c = list[i].CompareTo(value);
+
+                if (c == 0)
+                    return i;
+
+                if (c < 0)
+                    lo = i + 1;
+                else
+                    hi = i - 1;
+            }
+
+            return ~lo;
+        }
         #endregion
 
         #region Enum Extensions
