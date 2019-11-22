@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.ComponentModel;
 using System.IO;
 using System.Collections;
@@ -52,7 +51,7 @@ namespace ProductivityExtensionMethods
         }
         #endregion
 
-        #region String and StringBuilder Extensions
+        #region String Extensions
 #if (NETCOREAPP3_0 || NETCOREAPP3_1 || NETSTANDARD2_1)
         /// <summary>
         /// Executes the String.IsNullOrWhiteSpace on the current string
@@ -72,13 +71,38 @@ namespace ProductivityExtensionMethods
             return string.IsNullOrWhiteSpace(str);
         }
 #endif
-        public static string SubstringAfter(this string input, string value)
+#if (NETCOREAPP3_0 || NETCOREAPP3_1 || NETCOREAPP2_2 || NETCOREAPP2_1 || NETSTANDARD2_1)
+        public static ReadOnlySpan<char> SubstringAfter(this ReadOnlySpan<char> input, ReadOnlySpan<char> value, StringComparison stringComparison = StringComparison.OrdinalIgnoreCase)
+        {
+            int i = input.IndexOf(value, stringComparison);
+            if (i == -1)
+                return string.Empty;
+            return input.Slice(i + value.Length);
+        }
+        public static ReadOnlySpan<char> SubstringAfter(this ReadOnlySpan<char> input, char value)
         {
             int i = input.IndexOf(value);
             if (i == -1)
                 return string.Empty;
+            return input.Slice(i + 1);
+        }
+#endif
+        public static string SubstringAfter(this string input, string value, StringComparison stringComparison = StringComparison.OrdinalIgnoreCase)
+        {
+            int i = input.IndexOf(value, stringComparison);
+            if (i == -1)
+                return string.Empty;
             return input.Substring(i + value.Length);
         }
+#if (NETCOREAPP3_0 || NETCOREAPP3_1 || NETSTANDARD2_1)
+        public static string SubstringAfter(this string input, char value, StringComparison stringComparison = StringComparison.OrdinalIgnoreCase)
+        {
+            int i = input.IndexOf(value, stringComparison);
+            if (i == -1)
+                return string.Empty;
+            return input.Substring(i + 1);
+        }
+#else
         public static string SubstringAfter(this string input, char value)
         {
             int i = input.IndexOf(value);
@@ -86,6 +110,7 @@ namespace ProductivityExtensionMethods
                 return string.Empty;
             return input.Substring(i + 1);
         }
+#endif
         public static string SubstringBefore(this string input, string value)
         {
             int i = input.IndexOf(value);
@@ -101,10 +126,24 @@ namespace ProductivityExtensionMethods
             return input.Substring(0, i);
         }
 
+#if (NETCOREAPP3_0 || NETCOREAPP3_1 || NETCOREAPP2_2 || NETCOREAPP2_1 || NETSTANDARD2_1)
         /// <summary>
         /// Method that limits the length of text to a defined length.
         /// </summary>
-        /// <param name="source">The source text.</param>
+        /// <param name="source">The source string.</param>
+        /// <param name="maxLength">The maximum limit of the string to return.</param>
+        public static ReadOnlySpan<char> LimitLength(this ReadOnlySpan<char> source, int maxLength)
+        {
+            if (source.Length <= maxLength)
+                return source;
+            
+            return source.Slice(0, maxLength);
+        }
+#endif
+        /// <summary>
+        /// Method that limits the length of text to a defined length.
+        /// </summary>
+        /// <param name="source">The source string.</param>
         /// <param name="maxLength">The maximum limit of the string to return.</param>
         /// <param name="addEllipse">whether or not to add an ellipse to show string is truncated</param>
         public static string LimitLength(this string source, int maxLength, bool addEllipse)
@@ -125,7 +164,7 @@ namespace ProductivityExtensionMethods
         /// <summary>
         /// Method that limits the length of text to a defined length.
         /// </summary>
-        /// <param name="source">The source text.</param>
+        /// <param name="source">The source string.</param>
         /// <param name="maxLength">The maximum limit of the string to return.</param>
         public static string LimitLength(this string source, int maxLength)
         {
