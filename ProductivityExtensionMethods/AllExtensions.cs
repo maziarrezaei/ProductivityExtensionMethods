@@ -665,7 +665,7 @@ namespace ProductivityExtensionMethods
             return source.ToDictionary(keySelector, elementSelector, equalityComparer);
         }
         /// <summary>
-        /// When doing group by, resulting IEnumerable is inherently a dictionary. This method conviniently converts it to an IDictionary.
+        /// When doing group by, resulting IEnumerable is inherently a dictionary. This method conviniently converts it to an Dictionary.
         /// </summary>
         /// <typeparam name="TKey"></typeparam>
         /// <typeparam name="TElement"></typeparam>
@@ -675,8 +675,21 @@ namespace ProductivityExtensionMethods
         {
             return source.ToDictionary(it => it.Key, it => it.ToArray());
         }
+
         /// <summary>
-        /// When doing group by, resulting IEnumerable is inherently a dictionary. This method conviniently converts it to an IDictionary.
+        /// When doing group by, resulting IEnumerable is inherently a dictionary. This method conviniently converts it to an Dictionary.
+        /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TElement"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="keyComparer"></param>
+        /// <returns></returns>
+        public static Dictionary<TKey, TElement[]> ToDictionary<TKey, TElement>(this IEnumerable<IGrouping<TKey, TElement>> source, Func<TKey, TKey, bool> keyComparer)
+        {
+            return ToDictionary(source, keyComparer, null);
+        }
+        /// <summary>
+        /// When doing group by, resulting IEnumerable is inherently a dictionary. This method conviniently converts it to an Dictionary.
         /// </summary>
         /// <typeparam name="TKey"></typeparam>
         /// <typeparam name="TElement"></typeparam>
@@ -684,24 +697,36 @@ namespace ProductivityExtensionMethods
         /// <param name="keyComparer"></param>
         /// <param name="keyHashCalculator"></param>
         /// <returns></returns>
-        public static Dictionary<TKey, TElement[]> ToDictionary<TKey, TElement>(this IEnumerable<IGrouping<TKey, TElement>> source, Func<TKey, TKey, bool> keyComparer, Func<TKey, int> keyHashCalculator)
+        public static Dictionary<TKey, TElement[]> ToDictionary<TKey, TElement>(this IEnumerable<IGrouping<TKey, TElement>> source, Func<TKey, TKey, bool> keyComparer, Func<TKey, int>? keyHashCalculator)
         {
             IEqualityComparer<TKey> equalityComparer = keyHashCalculator == null ? new EqualityComparer<TKey>(keyComparer) : new EqualityComparer<TKey>(keyComparer, keyHashCalculator);
 
+            return ToDictionary(source, equalityComparer);
+        }
+
+        /// <summary>
+        /// When doing group by, resulting IEnumerable is inherently a dictionary. This method conviniently converts it to an Dictionary.
+        /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TElement"></typeparam>
+        /// <param name="source"></param>
+        /// <param name="equalityComparer"></param>
+        /// <returns></returns>
+        public static Dictionary<TKey, TElement[]> ToDictionary<TKey, TElement>(this IEnumerable<IGrouping<TKey, TElement>> source,IEqualityComparer<TKey> equalityComparer)
+        {
             var uniqueKeyGroupBy = source.GroupBy(grp => grp.Key, equalityComparer);
 
             return uniqueKeyGroupBy.ToDictionary(it => it.Key, it => it.SelectMany(i => i).ToArray(), equalityComparer);
         }
-
 
         public static IEnumerable<TSource> Distinct<TSource>(this IEnumerable<TSource> sources, Func<TSource, TSource, bool> comparer)
         {
             return sources.Distinct(new EqualityComparer<TSource>(comparer));
         }
 
-        public static IEnumerable<TSource> Distinct<TSource>(this IEnumerable<TSource> sources, Func<TSource, TSource, bool> comparer, Func<TSource, int> hash)
+        public static IEnumerable<TSource> Distinct<TSource>(this IEnumerable<TSource> sources, Func<TSource, TSource, bool> comparer, Func<TSource, int> hashCalculator)
         {
-            return sources.Distinct(new EqualityComparer<TSource>(comparer, hash));
+            return sources.Distinct(new EqualityComparer<TSource>(comparer, hashCalculator));
         }
         #endregion
 
