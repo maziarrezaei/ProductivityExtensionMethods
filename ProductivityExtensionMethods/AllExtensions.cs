@@ -1,4 +1,12 @@
-﻿using System;
+﻿#if (NETCOREAPP3_0 || NETCOREAPP3_1 || NETSTANDARD2_1)
+#define SUPPORT_NETSTANDARD2_1_AND_ABOVE
+#endif
+
+#if (NETCOREAPP3_1 || NETCOREAPP3_0 || NETCOREAPP2_2 || NETCOREAPP2_1)
+#define CORE2_1_AND_ABOVE
+#endif
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.ComponentModel;
@@ -52,7 +60,7 @@ namespace ProductivityExtensionMethods
         #endregion
 
         #region String Extensions
-#if (NETCOREAPP3_0 || NETCOREAPP3_1 || NETSTANDARD2_1)
+#if SUPPORT_NETSTANDARD2_1_AND_ABOVE
         /// <summary>
         /// Executes the String.IsNullOrWhiteSpace on the current string
         /// </summary>
@@ -71,7 +79,7 @@ namespace ProductivityExtensionMethods
             return string.IsNullOrWhiteSpace(str);
         }
 #endif
-#if (NETCOREAPP3_0 || NETCOREAPP3_1 || NETCOREAPP2_2 || NETCOREAPP2_1 || NETSTANDARD2_1)
+#if (CORE2_1_AND_ABOVE || SUPPORT_NETSTANDARD2_1_AND_ABOVE)
         public static ReadOnlySpan<char> SubstringAfter(this ReadOnlySpan<char> input, ReadOnlySpan<char> value, StringComparison stringComparison = StringComparison.OrdinalIgnoreCase)
         {
             int i = input.IndexOf(value, stringComparison);
@@ -94,7 +102,7 @@ namespace ProductivityExtensionMethods
                 return string.Empty;
             return input.Substring(i + value.Length);
         }
-#if (NETCOREAPP3_0 || NETCOREAPP3_1 || NETSTANDARD2_1)
+#if SUPPORT_NETSTANDARD2_1_AND_ABOVE
         public static string SubstringAfter(this string input, char value, StringComparison stringComparison = StringComparison.OrdinalIgnoreCase)
         {
             int i = input.IndexOf(value, stringComparison);
@@ -126,7 +134,7 @@ namespace ProductivityExtensionMethods
             return input.Substring(0, i);
         }
 
-#if (NETCOREAPP3_0 || NETCOREAPP3_1 || NETCOREAPP2_2 || NETCOREAPP2_1 || NETSTANDARD2_1)
+#if (CORE2_1_AND_ABOVE || SUPPORT_NETSTANDARD2_1_AND_ABOVE)
         /// <summary>
         /// Method that limits the length of text to a defined length.
         /// </summary>
