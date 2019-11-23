@@ -56,6 +56,11 @@ if (Test-Path './nuget.exe')
 elseif (Get-Command nuget -ErrorAction SilentlyContinue)
 {
     nuget pack $nuspcPath -OutputDirectory '..\'
+    if(-not $?)
+    {
+       Pause;
+    }
+    exit $LASTEXITCODE;
 }
 else
 {
