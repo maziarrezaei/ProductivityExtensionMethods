@@ -6,8 +6,7 @@
     <authors>Maziar Rezaei</authors>
     <owners>Maziar Rezaei</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <license type="expression">GPL-3.0-or-later</license>
-    <licenseUrl>https://licenses.nuget.org/GPL-3.0-or-later</licenseUrl>
+    <license type="expression">Unlicense </license>
     <projectUrl>https://github.com/maziarrezaei/ProductivityExtensionMethods</projectUrl>
     <description>Extension methods done right!  A select set of extension methods on some core .net class library types with the mindset to keep it minimal to be able to standardize in any team. Enabled by the different approach to distribution, you will be able to turn off the subset of methods that you are not likely to use in your project or standardize in your team. No more big messy extension classes with hundreds of extension methods that you will never use!</description>
     <copyright>Copyright 2019 Maziar Rezaei</copyright>
