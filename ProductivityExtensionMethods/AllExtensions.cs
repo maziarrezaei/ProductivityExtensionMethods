@@ -941,7 +941,7 @@ namespace ProductivityExtensionMethods
         }
         #endregion
 
-        public class EqualityComparer<T> : IEqualityComparer<T>
+        private class EqualityComparer<T> : IEqualityComparer<T>
         {
             private readonly Func<T, T, bool> _comparer;
             private readonly Func<T, int> _hash;
