@@ -7,6 +7,10 @@ Extension methods done right! When installed, a [T4 Template](https://docs.micro
 ## How to use
 It is [available on nuget](https://www.nuget.org/packages/ProductivityExtensionMethods).
 
+```
+> Install-Package ProductivityExtensionMethods -Version 1.0.0-beta.5
+```
+
 After referencing the package, a [T4 Template](https://docs.microsoft.com/en-us/visualstudio/modeling/code-generation-and-t4-text-templates) file is created in your project that will generate a C# .cs file. Modify top section of the file to enable certain category of extension methods. Nuget will take care of future updates. Ignore the generated file in your source control.
 
 ## Important Notes
