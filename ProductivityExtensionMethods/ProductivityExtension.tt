@@ -61,7 +61,7 @@ bool isNullableCompatible= IsNullableCompatible();
 <#
 	string startCode = extensionMethodsSourceCode.Substring(0,regionMatches[0].StartIndex);
 	startCode = startCode.Replace("namespace ProductivityExtensionMethods","namespace \<#=System.Runtime.Remoting.Messaging.CallContext.LogicalGetData(\"NamespaceHint\")\#>");
-	startCode = MakeNullableSyntaxConditional(startCode);
+	startCode = MakeNullableSyntaxConditional(startCode).TrimEnd(' ','\t');
 
     Write(startCode);
 
