@@ -226,25 +226,27 @@ namespace ProductivityExtensionMethods
         private static readonly ConcurrentDictionary<(Type closedType, Type openType), Type[]?> IsAClosedTypeOfCache = new ConcurrentDictionary<(Type closedType, Type openType), Type[]?>();
 
         /// <summary>
-        /// For the purposes of this method, <paramref name="constructedGenericType"/> is considered a closed type of the non-constructed (i.e. open) <paramref name="openGenericType"/>, if an instance of <paramref name="constructedGenericType"/> can be casted to a closed type created from <paramref name="openGenericType"/> with the same generic type arguments that was involved with defining type A.
-        /// For example, IDictionary<![CDATA[<string,string>]]> is a closed type of IDictionary<![CDATA[<,>]]>.
-        /// Also, When a type implements, or inherits from a generic type. For example, a class that implements IDictionary and is a closed type is considered a closed type of, since it is assignable to IDictionary.
-        /// Refer to <see cref="https://docs.microsoft.com/en-us/dotnet/framework/reflection-and-codedom/reflection-and-generic-types"/> for detailed definition of open and closed generic types.
+        /// Checks if a type is assignable to a certain generic type with no need to specify type parameters. For example, if a type is IDictionary<,>
         /// </summary>
-        /// <param name="constructedGenericType">Any type can be passed to be examined, however the type must be a closed generic type, or a non generic type.</param>
-        /// <param name="openGenericType">A generic type, without any type specification as parameters. A rule of thumb for such type is that one should be able to create a closed type of it by only providing a number of type parameters.</param>
-        /// <param name="genericTypeParameters">The parameters needed to create a closed type version of <paramref name="openGenericType"/> that an instance of <paramref name="constructedGenericType"/> can be casted to.</param>
-        /// <returns>If an instance of <paramref name="constructedGenericType"/> can be casted to a closed type created from <paramref name="openGenericType"/> with the same generic type arguments that was involved with defining <paramref name="constructedGenericType"/></returns>
-        public static bool IsAClosedTypeOf(this Type constructedGenericType, Type openGenericType, out Type[]? genericTypeParameters)
+        /// <remarks>
+        /// For the purposes of this method, <paramref name="type"/> is considered a closed type of the non-constructed (i.e. open) <paramref name="openGenericType"/>, if an instance of <paramref name="type"/> can be casted to a closed type created from <paramref name="openGenericType"/> with the same type-parameters that was used to construct <paramref name="type"/> or one if its base classes/interfaces.
+        /// This is true when a type or one of its base classes implements or inherits from <paramref name="openGenericType"/>. For example, a class that implements generic IList and is a now closed type is considered a closed type of it, since it is assignable to generic IList
+        /// Refer to <see cref="https://docs.microsoft.com/en-us/dotnet/framework/reflection-and-codedom/reflection-and-generic-types"/> for detailed definition of open and closed generic types.
+        /// </remarks>
+        /// <param name="type">Any type can be passed to be examined, however the type must be a closed generic type, or a non generic type.</param>
+        /// <param name="openGenericType">A generic type, without any type parameters specified. A rule of thumb for such type is that one should be able to create a closed type of it by only providing a number of type parameters.</param>
+        /// <param name="genericTypeParameters">If <paramref name="type"/> is a closed type of <paramref name="openGenericType"/>, the parameters that was used to construct the generic <paramref name="type"/> or one of its base classes/interfaces</param>
+        /// <returns>True, If an instance of <paramref name="type"/> can be casted to a closed type created from <paramref name="openGenericType"/> with the same generic type parameters that was used to defining <paramref name="type"/>. Otherwise, false.</returns>
+        public static bool IsAClosedTypeOf(this Type type, Type openGenericType, out Type[]? genericTypeParameters)
         {
-            if (constructedGenericType == null)
-                throw new ArgumentNullException(nameof(constructedGenericType));
+            if (type == null)
+                throw new ArgumentNullException(nameof(type));
 
             if (openGenericType == null)
                 throw new ArgumentNullException(nameof(openGenericType));
 
-            if (constructedGenericType.IsGenericTypeDefinition || constructedGenericType.ContainsGenericParameters)
-                throw new ArgumentException($"All generic parameters must be assigned and each generic parameter must be a non generic type or a closed generic type. Supplied type:" + constructedGenericType.ToString(), nameof(constructedGenericType));
+            if (type.IsGenericTypeDefinition || type.ContainsGenericParameters)
+                throw new ArgumentException($"All generic parameters must be assigned and each generic parameter must be a non generic type or a closed generic type. Supplied type:" + type.ToString(), nameof(type));
 
             if (!openGenericType.ContainsGenericParameters)
                 throw new ArgumentException($"Parameter supplied does not refer to an open generic type definition. Supplied type: {openGenericType} ", nameof(openGenericType));
@@ -255,7 +257,7 @@ namespace ProductivityExtensionMethods
                                             + "types can only be created through reflection and no language allows creation of such types using literal type specification such as the example.", nameof(openGenericType));
 
 
-            var keyToFind = (constructedGenericType, openGenericType);
+            var keyToFind = (type, openGenericType);
 
             genericTypeParameters = IsAClosedTypeOfCache.GetOrAdd(keyToFind, (key, arg) =>
             {
@@ -468,27 +470,23 @@ namespace ProductivityExtensionMethods
         {
             if (list.Count == 0)
             {
-                // Simple add
                 list.Add(item);
             }
             else if (item.CompareTo(list[list.Count - 1]) >= 0)
             {
-                // Add to the end as the item being added is greater than the last item by comparison.
                 list.Add(item);
             }
             else if (item.CompareTo(list[0]) <= 0)
             {
-                // Add to the front as the item being added is less than the first item by comparison.
                 list.Insert(0, item);
             }
             else
             {
-                // Otherwise, search for the place to insert.
+                // Search for the place to insert.
                 int index = BinarySearch(list, 0, list.Count, item);
                 if (index < 0)
                 {
-                    // The zero-based index of item if item is found; 
-                    // otherwise, a negative number that is the bitwise complement of the index of the next element that is larger than item or, if there is no larger element, the bitwise complement of Count.
+                    // If not found, index is the bitwise complement of the index of the next element larger than item.
                     index = ~index;
                 }
                 list.Insert(index, item);
