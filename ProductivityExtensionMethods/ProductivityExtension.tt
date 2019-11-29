@@ -1,4 +1,4 @@
-﻿<#@ template debug="false" hostspecific="true" language="C#" #>
+﻿4<#@ template debug="false" hostspecific="true" language="C#" #>
 <#@ assembly name="System.Core" #>
 <#@ import namespace="System.IO" #>
 <#@ import namespace="System.Linq" #>
@@ -28,27 +28,22 @@
 <#
  string extensionMethodsSourceCode = PreprocessCode(this.Host.ResolvePath("AllExtensions.cs"));
 
+ 
  if(extensionMethodsSourceCode==null)
 	throw new Exception("Cannot read the source code for extension, or preprocess it.");
- 
+
+ extensionMethodsSourceCode  = extensionMethodsSourceCode.Replace("namespace ProductivityExtensionMethods","namespace \<#=System.Runtime.Remoting.Messaging.CallContext.LogicalGetData(\"NamespaceHint\")\#>");
+
+ extensionMethodsSourceCode = MakeNullableSyntaxConditional(extensionMethodsSourceCode);
+
+ Regex regionFinderRegex=new Regex(@"(?=( |\t)*#region\s+(?<RegionName>[^\r\n]+))(?:(?<ltparen>(?(content)(?(ltparen)( |\t)*#region\s+[^\r\n]*\r\n|)|( |\t)*#region\s+[^\r\n]*\r\n))|(?<content-ltparen>( |\t)*#endregion(\r\n(?=\r\n))?)|(?(ltparen)(?(( |\t)*#region\s+[^\r\n]*\r\n|( |\t)*#endregion(\r\n(?=\r\n))?)|.+?)|))+",  RegexOptions.IgnoreCase|  RegexOptions.Singleline|  RegexOptions.ExplicitCapture);
+ var  regionMatches= regionFinderRegex.Matches(extensionMethodsSourceCode);
 
  
- Regex regionFinderRegex=new Regex(@"(?=#region\s+(?<RegionName>[^\r\n]+))(?:(?<ltparen>(?(content)(?(ltparen)#region\s+[^\r\n]*\r\n|)|#region\s+[^\r\n]*\r\n))|(?<content-ltparen>#endregion)|(?(ltparen)(?(#region\s+[^\r\n]*\r\n|#endregion)|.+?)|))+",  RegexOptions.IgnoreCase|  RegexOptions.Singleline|  RegexOptions.ExplicitCapture);
- var  regionMatches= regionFinderRegex.Matches(extensionMethodsSourceCode)
-									  .Cast<Match>()
-									  .Select(it=>(
-													ConfigFlag: it.Groups["RegionName"].Value.Replace(" ",""),
-													Code: it.Groups["content"].Value,
-													StartIndex: it.Index,
-													EndIndex: it.Index + it.Length
-												  )
-											  )
-									  .ToList();
-
- foreach(var region in regionMatches)
+ foreach(var regionName in regionMatches.Cast<Match>().Select(GetRegionName).Distinct().Where(IsValidVariableName))
  {
 #>
-bool <#=region.ConfigFlag#> = false;
+bool <#=regionName#> = false;
 <#}#>
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~DO NOT MODIFY AFTER THIS SECTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -57,27 +52,7 @@ bool <#=region.ConfigFlag#> = false;
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //ToolsVersion:VersionPlaceholder{D8B1B561-500C-4086-91AA-0714457205DA}
 bool isNullableCompatible= IsNullableCompatible();
-\#>
-<#
-	string startCode = extensionMethodsSourceCode.Substring(0,regionMatches[0].StartIndex);
-	startCode = startCode.Replace("namespace ProductivityExtensionMethods","namespace \<#=System.Runtime.Remoting.Messaging.CallContext.LogicalGetData(\"NamespaceHint\")\#>");
-	startCode = MakeNullableSyntaxConditional(startCode).TrimEnd(' ','\t');
-
-    Write(startCode);
-
-#>
-<#foreach(var region in regionMatches)
-{
-#>\<#if(<#=region.ConfigFlag#>)
-{
-\#>
-<#=MakeNullableSyntaxConditional(region.Code)#>
-\<#
-}
-\#>
-<#}#><#=MakeNullableSyntaxConditional(extensionMethodsSourceCode.Substring(regionMatches.Last().EndIndex))#>
-
-\<#+
+\#><#=regionFinderRegex.Replace(extensionMethodsSourceCode, ConvertRegionToIf) #>\<#+
 private bool IsNullableCompatible()
 {
 	EnvDTE.DTE visualStudio = (EnvDTE.DTE)((IServiceProvider)this.Host).GetCOMService(typeof(EnvDTE.DTE));
@@ -140,5 +115,17 @@ private string MakeNullableSyntaxConditional(string code)
 	Regex nullableRegex = new Regex(@"/\*Start:nullableref\*/(?<NullableSyntax>.+?)/\*End:nullableref\*/",RegexOptions.Singleline|  RegexOptions.ExplicitCapture);
 
 	return nullableRegex.Replace(code, mtch => @"\<#if (isNullableCompatible){\#>" + mtch.Groups["NullableSyntax"].Value + @"\<#}\#>");
+}
+private string GetRegionName(Match match)
+{
+	return match.Groups["RegionName"].Value.Replace(" ","").Trim();
+}
+private string ConvertRegionToIf(Match match)
+{
+    return @$"\<#if ({GetRegionName(match)}){{\#>{match.Groups["content"].Value}\<#}}\#>";
+}
+private bool IsValidVariableName(string name)
+{
+	return Regex.IsMatch(name,"^[a-zA-Z_$][a-zA-Z_$0-9]*$");
 }
 #>

@@ -45,7 +45,6 @@ namespace ProductivityExtensionMethods
 
             return list.Contains(source, comparer);
         }
-
         #endregion
 
         #region Nullable Value Types Extensions
@@ -224,7 +223,6 @@ namespace ProductivityExtensionMethods
 
         #region Type Extensions
         private static readonly ConcurrentDictionary<(Type closedType, Type openType), Type[]?> IsAClosedTypeOfCache = new ConcurrentDictionary<(Type closedType, Type openType), Type[]?>();
-
         /// <summary>
         /// Checks if a type is assignable to a certain generic type with no need to specify type parameters. For example, if a type is IDictionary<,>
         /// </summary>
@@ -299,7 +297,6 @@ namespace ProductivityExtensionMethods
             return genericTypeParameters != null;
 
         }
-
         /// <summary>
         /// A version of Type.MakeGenericType that does not throw exception. 
         /// </summary>
@@ -323,7 +320,6 @@ namespace ProductivityExtensionMethods
                 return false;
             }
         }
-
         public static bool HasAttribute<T>(this MemberInfo mi) where T : Attribute
         {
             return Attribute.GetCustomAttribute(mi, typeof(T), true) != null;
@@ -492,7 +488,6 @@ namespace ProductivityExtensionMethods
                 list.Insert(index, item);
             }
         }
-
         /// <summary>
         /// Searches a section of an IList for a given element using a binary search algorithm. Elements of the array are compared to the search value using
         /// the given comparer function. This method assumes that the list is already sorted; if this is not the case, the
@@ -659,7 +654,6 @@ namespace ProductivityExtensionMethods
 
             throw new ArgumentOutOfRangeException(nameof(dayKind));
         }
-
         /// <summary>
         /// Gets the last kind of day based on the passed day time.
         /// </summary>
@@ -704,7 +698,6 @@ namespace ProductivityExtensionMethods
 
             throw new ArgumentOutOfRangeException(nameof(dayKind));
         }
-
         /// <summary>
         /// Gets the DateTime for the first following date that is the given day of the week
         /// </summary>
@@ -719,7 +712,6 @@ namespace ProductivityExtensionMethods
 
             return date.Date.AddDays(diff);
         }
-
         /// <summary>
         /// Gets a DateTime representing the first date following the current date which falls on the given day of the week
         /// </summary>
@@ -734,7 +726,6 @@ namespace ProductivityExtensionMethods
 
             return date.Date.AddDays(diff);
         }
-
         #endregion
 
         #region Stream Extensions
@@ -785,7 +776,6 @@ namespace ProductivityExtensionMethods
             }
             return total;
         }
-
         #endregion
 
         #region Queue Extensions
@@ -802,10 +792,7 @@ namespace ProductivityExtensionMethods
             Recursive<TData, TResult> rec = result => data => f(result(result))(data);
             return rec(rec);
         }
-
         private delegate Func<TData, TResult> Recursive<TData, TResult>(Recursive<TData, TResult> r);
-
-
         /// <summary>
         /// Fixes the parameter of a single input. Also when combined with currying, you can fix all the parameters of a multiple parameter
         /// function
@@ -868,7 +855,6 @@ namespace ProductivityExtensionMethods
         {
             return source.ToDictionary(it => it.Key, it => it.ToArray());
         }
-
         /// <summary>
         /// When doing group by, resulting IEnumerable is inherently a dictionary. This method conviniently converts it to an Dictionary.
         /// </summary>
@@ -896,7 +882,6 @@ namespace ProductivityExtensionMethods
 
             return ToDictionary(source, equalityComparer);
         }
-
         /// <summary>
         /// When doing group by, resulting IEnumerable is inherently a dictionary. This method conviniently converts it to an Dictionary.
         /// </summary>
@@ -911,12 +896,10 @@ namespace ProductivityExtensionMethods
 
             return uniqueKeyGroupBy.ToDictionary(it => it.Key, it => it.SelectMany(i => i).ToArray(), equalityComparer);
         }
-
         public static IEnumerable<TSource> Distinct<TSource>(this IEnumerable<TSource> sources, Func<TSource, TSource, bool> comparer)
         {
             return sources.Distinct(new EqualityComparer<TSource>(comparer));
         }
-
         public static IEnumerable<TSource> Distinct<TSource>(this IEnumerable<TSource> sources, Func<TSource, TSource, bool> comparer, Func<TSource, int> hashCalculator)
         {
             return sources.Distinct(new EqualityComparer<TSource>(comparer, hashCalculator));
@@ -924,7 +907,6 @@ namespace ProductivityExtensionMethods
         #endregion
 
         #region IEnumerable to Hierarchy Extensions
-
         /// <summary>
         /// Converts a flat list of TEntity to a hierarchy of TNodes.
         /// </summary>
@@ -1046,7 +1028,6 @@ namespace ProductivityExtensionMethods
                             from node3 in room
                             select node3.Node);
         }
-
         private class TreeNode<TEntity, TKey, TNode> where TKey : struct
         {
             public TKey NodeKey;
@@ -1055,6 +1036,7 @@ namespace ProductivityExtensionMethods
         }
         #endregion
 
+        #region Extensions Affecting All Types || Generic IList Extensions || IEnumerable Extensions
         private class EqualityComparer<T> : IEqualityComparer<T>
         {
             private readonly Func<T, T, bool> _comparer;
@@ -1088,8 +1070,10 @@ namespace ProductivityExtensionMethods
                 return _hash(obj);
             }
         }
+        #endregion
     }
 
+    #region DateTime Extensions
     public enum DayKind
     {
         SundayOfMonth,
@@ -1110,4 +1094,5 @@ namespace ProductivityExtensionMethods
         DayOfYear,
         DayOfWeek
     }
+    #endregion
 }
