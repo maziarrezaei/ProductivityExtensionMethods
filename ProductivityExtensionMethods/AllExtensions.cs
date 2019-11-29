@@ -144,7 +144,7 @@ namespace ProductivityExtensionMethods
         {
             if (source.Length <= maxLength)
                 return source;
-            
+
             return source.Slice(0, maxLength);
         }
 #endif
@@ -600,23 +600,139 @@ namespace ProductivityExtensionMethods
         {
             return date.Date.Add(time);
         }
-        public static DateTime SetTime(this DateTime date, int hours)
+        public static DateTime SetTime(this DateTime date, int? hours = null, int? minutes = null, int? seconds = null, int? milliseconds = null, int? subMsTicks = null)
         {
-            return date.SetTime(hours, null, null, null);
+            var newTime = date.TimeOfDay.SetTime(0, hours, minutes, seconds, milliseconds, subMsTicks);
+
+            return date.Date.Add(newTime);
         }
-        public static DateTime SetTime(this DateTime date, int hours, int minutes)
+        public static TimeSpan SetTime(this TimeSpan ts, int? days, int? hours = null, int? minutes = null, int? seconds = null, int? milliseconds = null, int? subMsTicks = null)
         {
-            return date.SetTime(hours, minutes, null, null);
+            TimeSpan ticks = subMsTicks.HasValue ? TimeSpan.FromTicks(subMsTicks.Value) : ts - TimeSpan.FromMilliseconds(ts.TotalMilliseconds);
+
+            return new TimeSpan(days ?? ts.Days, hours ?? ts.Hours, minutes ?? ts.Minutes, seconds ?? ts.Seconds, milliseconds ?? ts.Milliseconds) + ticks;
         }
-        public static DateTime SetTime(this DateTime date, int hours, int minutes, int seconds)
+        public static DateTime SetDate(this DateTime date, int? year = null, int? month = null, int? day = null)
         {
-            return date.SetTime(hours, minutes, seconds, null);
+            return new DateTime(year ?? date.Year, month ?? date.Month, day ?? date.Day).Add(date.TimeOfDay);
         }
-        public static DateTime SetTime(this DateTime date, int? hours, int? minutes, int? seconds, int? milliseconds)
+        /// <summary>
+        /// Gets the first kind of day based on the passed day time.
+        /// </summary>
+        /// <param name="date">The date</param>
+        /// <param name="dayKind">The kind of day</param>
+        /// <returns>The DateTime associated with the first kind of day passed.</returns>
+        public static DateTime GetFirst(this DateTime date, DayKind dayKind)
         {
-            var t = date.TimeOfDay;
-            TimeSpan time = new TimeSpan(0, hours ?? t.Hours, minutes ?? t.Minutes, seconds ?? t.Seconds, milliseconds ?? t.Milliseconds);
-            return date.SetTime(time);
+            date = date.Date;
+
+            if (dayKind <= DayKind.DayOfMonth)
+            {
+                DateTime firstDayOfMonth = date.AddDays(1 - date.Day);
+
+                if (dayKind == DayKind.DayOfMonth)
+                    return firstDayOfMonth;
+
+                if (firstDayOfMonth.DayOfWeek != (DayOfWeek)dayKind)
+                    return firstDayOfMonth.GetNext((DayOfWeek)dayKind);
+
+                return firstDayOfMonth;
+            }
+
+            if (dayKind <= DayKind.DayOfYear)
+            {
+                DateTime firstDayOfYear = date.SetDate(month: 1, day: 1);
+
+                if (dayKind == DayKind.DayOfYear)
+                    return firstDayOfYear;
+
+                if (dayKind >= DayKind.SundayOfYear && dayKind <= DayKind.SaturdayOfYear)
+                {
+                    DayKind inMonthDayKind = (DayKind)((int)dayKind & ~0b01000);
+
+                    return date.GetFirst(inMonthDayKind);
+                }
+            }
+
+            if (dayKind == DayKind.DayOfWeek)
+                return date.DayOfWeek == DayOfWeek.Sunday ? date : date.GetPrevious(DayOfWeek.Sunday);
+
+            throw new ArgumentOutOfRangeException(nameof(dayKind));
+        }
+
+        /// <summary>
+        /// Gets the last kind of day based on the passed day time.
+        /// </summary>
+        /// <param name="date">The  date</param>
+        /// <returns>The DateTime associated with the last kind of day passed.</returns>
+        public static DateTime GetLast(this DateTime date, DayKind dayKind)
+        {
+            if (dayKind <= DayKind.DayOfMonth)
+            {
+                int daysInMonth = DateTime.DaysInMonth(date.Year, date.Month);
+
+                DateTime lastDayOfMonth = date.GetFirst(DayKind.DayOfMonth).AddDays(daysInMonth - 1);
+
+                if (dayKind == DayKind.DayOfMonth)
+                    return lastDayOfMonth;
+
+                int diff = (int)dayKind - (int)lastDayOfMonth.DayOfWeek;
+
+                if (diff > 0)
+                    diff -= 7;
+
+                return lastDayOfMonth.AddDays(diff);
+            }
+
+            if (dayKind <= DayKind.DayOfYear)
+            {
+                DateTime lastDayOfYear = date.Date.SetDate(month: 12, day: 31);
+
+                if (dayKind == DayKind.DayOfYear)
+                    return lastDayOfYear;
+
+                if (dayKind >= DayKind.SundayOfYear && dayKind <= DayKind.SaturdayOfYear)
+                {
+                    DayKind inMonthDayKind = (DayKind)((int)dayKind & ~0b01000);
+
+                    return date.GetLast(inMonthDayKind);
+                }
+            }
+
+            if (dayKind == DayKind.DayOfWeek)
+                return date.DayOfWeek == DayOfWeek.Saturday ? date.Date : date.GetNext(DayOfWeek.Saturday);
+
+            throw new ArgumentOutOfRangeException(nameof(dayKind));
+        }
+
+        /// <summary>
+        /// Gets the DateTime for the first following date that is the given day of the week
+        /// </summary>
+        /// <param name="date">The date</param>
+        /// <param name="dayOfWeek">The following day of the specified DayOfWeek</param>
+        public static DateTime GetNext(this DateTime date, DayOfWeek dayOfWeek)
+        {
+            int diff = dayOfWeek - date.DayOfWeek;
+
+            if (diff <= 0)
+                diff += 7;
+
+            return date.Date.AddDays(diff);
+        }
+
+        /// <summary>
+        /// Gets a DateTime representing the first date following the current date which falls on the given day of the week
+        /// </summary>
+        /// <param name="date">The date</param>
+        /// <param name="dayOfWeek">The following day of the specified DayOfWeek</param>
+        public static DateTime GetPrevious(this DateTime date, DayOfWeek dayOfWeek)
+        {
+            int diff = dayOfWeek - date.DayOfWeek;
+
+            if (diff >= 0)
+                diff -= 7;
+
+            return date.Date.AddDays(diff);
         }
 
         #endregion
@@ -789,7 +905,7 @@ namespace ProductivityExtensionMethods
         /// <param name="source"></param>
         /// <param name="equalityComparer"></param>
         /// <returns></returns>
-        public static Dictionary<TKey, TElement[]> ToDictionary<TKey, TElement>(this IEnumerable<IGrouping<TKey, TElement>> source,IEqualityComparer<TKey> equalityComparer)
+        public static Dictionary<TKey, TElement[]> ToDictionary<TKey, TElement>(this IEnumerable<IGrouping<TKey, TElement>> source, IEqualityComparer<TKey> equalityComparer)
         {
             var uniqueKeyGroupBy = source.GroupBy(grp => grp.Key, equalityComparer);
 
@@ -972,5 +1088,26 @@ namespace ProductivityExtensionMethods
                 return _hash(obj);
             }
         }
+    }
+
+    public enum DayKind
+    {
+        SundayOfMonth,
+        MondayOfMonth,
+        TuesdayOfMonth,
+        WednesdayOfMonth,
+        ThursdayOfMonth,
+        FridayOfMonth,
+        SaturdayOfMonth,
+        DayOfMonth,
+        SundayOfYear = 0b01000,
+        MondayOfYear,
+        TuesdayOfYear,
+        WednesdayOfYear,
+        ThursdayOfYear,
+        FridayOfYear,
+        SaturdayOfYear,
+        DayOfYear,
+        DayOfWeek
     }
 }
