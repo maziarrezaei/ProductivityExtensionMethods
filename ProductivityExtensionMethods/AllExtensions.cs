@@ -64,18 +64,27 @@ namespace ProductivityExtensionMethods
         /// Executes the String.IsNullOrWhiteSpace on the current string
         /// </summary>
         /// <returns>True if either empty, white space or null</returns>
-        public static bool IsBlank([NotNullWhen(false)] this String str)
+        public static bool IsBlank([NotNullWhen(false)] this string? str)
         {
             return string.IsNullOrWhiteSpace(str);
+        }
+        [return: NotNullIfNotNull("defaultValue")]
+        public static string? ValueOrDefault(string? value, string? defaultValue)
+        {
+            return value.IsBlank() ? defaultValue : value;
         }
 #else
         /// <summary>
         /// Executes the String.IsNullOrWhiteSpace on the current string
         /// </summary>
         /// <returns>True if either empty, white space or null</returns>
-        public static bool IsBlank(this String str)
+        public static bool IsBlank(this string? str)
         {
             return string.IsNullOrWhiteSpace(str);
+        }
+        public static string? ValueOrDefault(string? value, string? defaultValue)
+        {
+            return value.IsBlank() ? defaultValue : value;
         }
 #endif
 #if (CORE2_1_AND_ABOVE || SUPPORT_NETSTANDARD2_1_AND_ABOVE)
