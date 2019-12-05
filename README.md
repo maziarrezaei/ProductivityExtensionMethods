@@ -16,7 +16,7 @@ After referencing the package, a [T4 Template](https://docs.microsoft.com/en-us/
 ## Important Notes
 - The generated class is in C#, so it only works in C# projects.
 - The C# code contains C# 7.3 syntax in some categories. Make sure it is enabled in your project by going to Project Properties -> Build -> Advanced...
-- The C# code contains *Nullable Reference Type* feature available in C# 8. It will only be generated if Visual Studio 2019 is used. No way to opt-out at this point.
+- The C# code contains *Nullable Reference Type* feature available in C# 8. It will only be generated if target framework is .Net Core 3.0 or .Net Standard 2.1.
 - This package is tested on latest versions of Visual Studio 2019/2017.
 
 ## Known Issues

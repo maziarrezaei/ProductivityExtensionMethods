@@ -56,11 +56,24 @@ bool isNullableCompatible= IsNullableCompatible();
 private bool IsNullableCompatible()
 {
 	EnvDTE.DTE visualStudio = (EnvDTE.DTE)((IServiceProvider)this.Host).GetCOMService(typeof(EnvDTE.DTE));
-	Regex regEx = new Regex(@"^\d+(\.\d+)", RegexOptions.ExplicitCapture);
+	var project = visualStudio.Solution.FindProjectItem(this.Host.TemplateFile).ContainingProject as EnvDTE.Project;
+	
+    string targetFramework= XDocument.Load(project.FullName)
+                                    ?.Element("Project")
+                                    ?.Elements("PropertyGroup")
+                                    ?.Elements("TargetFramework")
+                                    ?.FirstOrDefault()?.Value;
+    
+	if(targetFramework == null)
+		return false;
 
-	Match mtch = regEx.Match(visualStudio.Version);
+	if(targetFramework.StartsWith("netstandard"))
+	   return float.Parse(targetFramework.Substring(11))>=2.1f;
 
-	return mtch.Success && float.Parse(mtch.Value) >= 16f;
+	if(targetFramework.StartsWith("netcoreapp"))
+	   return float.Parse(targetFramework.Substring(10))>=3f;
+
+	return false;
 }
 \#>
 <#+
