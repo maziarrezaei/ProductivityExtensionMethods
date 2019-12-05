@@ -14,6 +14,7 @@ using System.IO;
 using System.Collections;
 using System.Reflection;
 using System.Collections.Concurrent;
+using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
@@ -832,6 +833,24 @@ namespace ProductivityExtensionMethods
             foreach (var item in items)
                 queue.Enqueue(item);
         }
+        #endregion
+
+        #region ADO Extensions
+
+        public static IEnumerable<T> AsEnumerable<T>(this T reader, bool disposeReader = true) where T : IDataReader
+        {
+            try
+            {
+                while (reader.Read())
+                    yield return reader;
+            }
+            finally
+            {
+                if (disposeReader)
+                    reader.Close();
+            }
+        }
+
         #endregion
 
         #region Func Lambda Calculus Extensions
