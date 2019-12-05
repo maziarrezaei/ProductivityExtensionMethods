@@ -15,6 +15,7 @@ using System.Collections;
 using System.Reflection;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
 
 #nullable enable
 
@@ -118,6 +119,14 @@ namespace ProductivityExtensionMethods
                 return string.Empty;
             return input.Substring(i + 1);
         }
+        public static StringBuilder StringBuilderJoin(this IEnumerable<string> values, string separator)
+        {
+            return new StringBuilder().AppendJoin(separator, values);
+        }
+        public static StringBuilder StringBuilderJoin(this string[] values, string separator)
+        {
+            return new StringBuilder().AppendJoin(separator, values);
+        }
 #else
         public static string SubstringAfter(this string input, char value)
         {
@@ -125,6 +134,28 @@ namespace ProductivityExtensionMethods
             if (i == -1)
                 return string.Empty;
             return input.Substring(i + 1);
+        }
+        public static StringBuilder StringBuilderJoin(this IEnumerable<string> values, string separator)
+        {
+            var result = new StringBuilder();
+            foreach (string st in values)
+                result.Append(st).Append(separator);
+
+            if (result.Length > 0)
+                result.Remove(result.Length - separator.Length, separator.Length);
+
+            return result;
+        }
+        public static StringBuilder StringBuilderJoin(this string[] values, string separator)
+        {
+            var result = new StringBuilder();
+            foreach (string st in values)
+                result.Append(st).Append(separator);
+
+            if (result.Length > 0)
+                result.Remove(result.Length - separator.Length, separator.Length);
+
+            return result;
         }
 #endif
         public static string SubstringBefore(this string input, string value)
@@ -185,6 +216,14 @@ namespace ProductivityExtensionMethods
         public static string LimitLength(this string source, int maxLength)
         {
             return LimitLength(source, maxLength, false);
+        }
+        public static string StringJoin(this string[] values, string separator)
+        {
+            return string.Join(separator, values);
+        }
+        public static string StringJoin(this IEnumerable<string> values, string separator)
+        {
+            return string.Join(separator, values);
         }
         #endregion
 
