@@ -1011,18 +1011,19 @@ namespace ProductivityExtensionMethods
 
         #region IEnumerable to Hierarchy Extensions
         /// <summary>
-        /// Converts a flat list of TEntity to a hierarchy of TNodes.
+        /// Converts a flat list of TEntity to a hierarchy of <typeparamref name="TNode"/>, optimized for very large number of items.
         /// </summary>
         /// <typeparam name="TEntity">The type of the entity</typeparam>
         /// <typeparam name="TNode">The type of the node in the hierarchy</typeparam>
         /// <typeparam name="TKey">The type of the identifier</typeparam>
         /// <param name="source">the source list</param>
-        /// <param name="convertor">The function to use for casting a TEntity to a TNode. return null ignore the TEntity.</param>
-        /// <param name="getKey">The function to use for extracting the key from a TEntity. return null ignore the TEntity.</param>
-        /// <param name="getParentKey">The function to use for extracting the parent key of a TEntity. return null to explicitly indicate the TEntity as root (performance upside).</param>
+        /// <param name="convertor">The function to use for casting a <typeparamref name="TEntity"/> to a <typeparamref name="TNode"/>. return null ignore the <typeparamref name="TEntity"/>.</param>
+        /// <param name="getKey">The function to use for extracting the key from a <typeparamref name="TEntity"/>. return null ignore the <typeparamref name="TEntity"/>.</param>
+        /// <param name="getParentKey">The function to use for extracting the parent key of a <typeparamref name="TEntity"/>. return null to explicitly indicate the <typeparamref name="TEntity"/> as root (performance upside).</param>
         /// <param name="firstIsParentOfSecond">The function to call whenever a child of a parent node is found.</param>
-        /// <remarks>The order of the operation is O(n) (yes, that's right)</remarks>
-        /// <returns>the IEnumerable of root TNodes</returns>
+        /// <remarks>The order of the operation is O(n). Implementation performs optimized loop if the instance is a generic List or even better an array, but
+        /// do not create new instances of generic list or array to pass in, since the overall performance will be lower.</remarks>
+        /// <returns>the IEnumerable of root <typeparamref name="TNode"/></returns>
         public static IEnumerable<TNode> ToHierarchy<TEntity, TKey, TNode>(this IEnumerable<TEntity> source, Func<TEntity, TNode?> convertor, Func<TEntity, TKey?> getKey, Func<TEntity, TKey?> getParentKey, Action<TNode, TNode> firstIsParentOfSecond) where TKey : struct
                                                                                                                                                                                                                                                       where TNode : class
                                                                                                                                                                                                                                                       where TEntity : class
@@ -1030,19 +1031,20 @@ namespace ProductivityExtensionMethods
             return ToHierarchy<TEntity, TKey, TNode>(source, null, convertor, getKey, getParentKey, firstIsParentOfSecond);
         }
         /// <summary>
-        /// Converts a flat list of TEntity to a hierarchy of TNodes.
+        /// Converts a flat list of TEntity to a hierarchy of <typeparamref name="TNode"/>, optimized for very large number of items.
         /// </summary>
         /// <typeparam name="TEntity">The type of the entity</typeparam>
         /// <typeparam name="TNode">The type of the node in the hierarchy</typeparam>
         /// <typeparam name="TKey">The type of the identifier</typeparam>
-        /// <param name="source">the source list</param>
+        /// <param name="source">the source list.</param>
         /// <param name="keycomparer">a comparer to use for compare and get hash code of the entity keys returned by the getKey and getParentKey functions</param>
-        /// <param name="convertor">The function to use for casting a TEntity to a TNode. return null to ignore the TEntity.</param>
-        /// <param name="getKey">The function to use for extracting the key from a TEntity. return null to ignore the TEntity.</param>
-        /// <param name="getParentKey">The function to use for extracting the parent key of a TEntity. return null to explicitly indicate the TEntity as root.</param>
+        /// <param name="convertor">The function to use for casting a <typeparamref name="TEntity"/> to a <typeparamref name="TNode"/>. return null to ignore the <typeparamref name="TEntity"/>.</param>
+        /// <param name="getKey">The function to use for extracting the key from a <typeparamref name="TEntity"/>. return null to ignore the <typeparamref name="TEntity"/>.</param>
+        /// <param name="getParentKey">The function to use for extracting the parent key of a <typeparamref name="TEntity"/>. return null to explicitly indicate the <typeparamref name="TEntity"/> as root.</param>
         /// <param name="firstIsParentOfSecond">The function to call whenever a child of a parent node is found.</param>
-        /// <remarks>The order of the operation is O(n) (yes, that's right)</remarks>
-        /// <returns>the IEnumerable of root TNodes</returns>
+        /// <remarks>The order of the operation is O(n). Implementation performs optimized loop if the instance is a generic List or even better an array, but
+        /// do not create new instances of generic list or array to pass in, since the overall performance will be lower.</remarks>
+        /// <returns>the IEnumerable of root <typeparamref name="TNode"/></returns>
         public static IEnumerable<TNode> ToHierarchy<TEntity, TKey, TNode>(this IEnumerable<TEntity> source, IEqualityComparer<TKey>? keycomparer, Func<TEntity, TNode?> convertor, Func<TEntity, TKey?> getKey, Func<TEntity, TKey?> getParentKey, Action<TNode, TNode> firstIsParentOfSecond) where TKey : struct
                                                                                                                                                                                                                                                                                                where TNode : class
                                                                                                                                                                                                                                                                                                where TEntity : class
