@@ -1,5 +1,5 @@
 # ProductivityExtensionMethods
-Extension methods done right! When installed, a [T4 Template](https://docs.microsoft.com/en-us/visualstudio/modeling/code-generation-and-t4-text-templates) file is added to the project that, based on the what you enable, generates useful extension methods for certain base class library types and common intefaces that greately increase productivity. Besides that, it demonstrates an improved method to distribute extension methods.
+Extension methods done right! When installed, a [T4 Template](https://docs.microsoft.com/en-us/visualstudio/modeling/code-generation-and-t4-text-templates) file is added to the project that, based on the what you enable, generates useful extension methods for certain base class library types and common intefaces that greately increase productivity. Besides, it demonstrates an improved approach to distributing or re-using extension methods.
 
 [**Visit FAQ page for more details.**](https://github.com/maziarrezaei/ProductivityExtensionMethods/wiki/FAQ)
 
