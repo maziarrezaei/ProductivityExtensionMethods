@@ -47,6 +47,10 @@ namespace ProductivityExtensionMethods
 
             return list.Contains(source, comparer);
         }
+        public static bool Contains<T>(this T[] array, T item)
+        {
+            return Array.IndexOf(array, item) >= 0;
+        }
         #endregion
 
         #region Nullable Value Types Extensions
