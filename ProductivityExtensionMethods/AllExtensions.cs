@@ -16,6 +16,7 @@ using System.Reflection;
 using System.Collections.Concurrent;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 #nullable enable
@@ -463,8 +464,24 @@ namespace ProductivityExtensionMethods
             if (list is List<T> l)//List<T> may have a better performance
                 l.AddRange(collection);
             else
-                foreach (var item in collection)
-                    list.Add(item);
+            {
+                switch (collection)
+                {
+                    case T[] array:
+                        foreach (var item in array) //5x faster than loop over collection
+                            list.Add(item);
+                        break;
+                    case List<T> list2:
+                        foreach (var item in list2) //4x faster than loop over collection
+                            list.Add(item);
+                        break;
+                    default:
+                        foreach (var item in collection)
+                            list.Add(item);
+                        break;
+                }
+                
+            }
         }
         public static void InsertRange<T>(this IList<T> list, int index, IEnumerable<T> collection)
         {
@@ -472,8 +489,23 @@ namespace ProductivityExtensionMethods
             if (list is List<T> l)
                 l.InsertRange(index, collection);
             else
-                foreach (var item in collection)
-                    list.Insert(index++, item);
+            {
+                switch (collection)
+                {
+                    case T[] array:
+                        foreach (var item in array) //5x faster than loop over collection
+                            list.Insert(index++, item);
+                        break;
+                    case List<T> list2:
+                        foreach (var item in list2) //4x faster than loop over collection
+                            list.Insert(index++, item);
+                        break;
+                    default:
+                        foreach (var item in collection)
+                            list.Insert(index++, item);
+                        break;
+                }
+            }
         }
         public static void Move<T>(this IList<T> list, int sourceIndex, int destinationIndex)
         {
@@ -1030,75 +1062,94 @@ namespace ProductivityExtensionMethods
                     break;
             }
 
-            var orphanage = new Dictionary<TKey, List<TreeNode<TEntity, TKey, TNode>>>(keycomparer);
 
-            TreeNode<TEntity, TKey, TNode> node, parentNode;
 
             var explicitNoParentItems = new List<TreeNode<TEntity, TKey, TNode>>();
+            var orphanage = new Dictionary<TKey, List<TreeNode<TEntity, TKey, TNode>>>(keycomparer);
 
-            List<TreeNode<TEntity, TKey, TNode>> orphanageRoom;
-
-            TNode? castedNode;
-
-            foreach (var v in source)
+            switch (source) // each case is handled differently by compiler for performance reason. Body of each case will be inlined by the compiler
             {
-                if (v == null)
-                    continue;
-
-                castedNode = convertor(v);
-                if (castedNode == null)
-                    continue;
-
-                node = new TreeNode<TEntity, TKey, TNode>();
-
-                node.Node = castedNode;
-
-                TKey? nodeKey = getKey(v);
-                if (!nodeKey.HasValue)
-                    continue;
-
-                node.NodeKey = nodeKey.Value;
-                node.ParentKey = getParentKey(v);
-
-                //finding parent of the node
-                if (node.ParentKey.HasValue)
-                {
-                    if (parents.TryGetValue(node.ParentKey.Value, out parentNode))
-                    {
-                        firstIsParentOfSecond(parentNode.Node, node.Node);
-                    }
-                    else
-                    {
-                        //poor node :( no parent found! it should go to the orphanage
-                        if (!orphanage.TryGetValue(node.ParentKey.Value, out orphanageRoom))
-                        {
-                            orphanageRoom = new List<TreeNode<TEntity, TKey, TNode>>();
-                            orphanage.Add(node.ParentKey.Value, orphanageRoom);
-                        }
-                        orphanageRoom.Add(node);
-                    }
-                }
-                else
-                    explicitNoParentItems.Add(node);
-
-
-                //checking if there are any orphans whose parent is this new node object.
-                if (orphanage.TryGetValue(node.NodeKey, out orphanageRoom))
-                {
-                    foreach (var v2 in orphanageRoom)
-                        firstIsParentOfSecond(node.Node, v2.Node);
-
-                    orphanage.Remove(node.NodeKey);//there would be no more orphans for this parent, so removing the orphanage room
-                }
-
-                parents.Add(node.NodeKey, node);
+                case TEntity[] sourceArray:
+                    foreach (var v in sourceArray)
+                        DoConvertToHierarchy<TEntity, TKey, TNode>(convertor, getKey, getParentKey, firstIsParentOfSecond, v, parents, orphanage, explicitNoParentItems);
+                    break;
+                case List<TEntity> sourceList:
+                    foreach (var v in sourceList)
+                        DoConvertToHierarchy<TEntity, TKey, TNode>(convertor, getKey, getParentKey, firstIsParentOfSecond, v, parents, orphanage, explicitNoParentItems);
+                    break;
+                default:
+                    foreach (var v in source)
+                        DoConvertToHierarchy<TEntity, TKey, TNode>(convertor, getKey, getParentKey, firstIsParentOfSecond, v, parents, orphanage, explicitNoParentItems);
+                    break;
             }
 
-            return (from node2 in explicitNoParentItems select node2.Node)
-                    .Concat(from room in orphanage.Values
-                            from node3 in room
-                            select node3.Node);
+            return (from node in explicitNoParentItems select node.Node)
+                    .Concat(from room in orphanage.Values  // There maybe some items that claimed to have parents, but we did not encounter the parent ID. We add them to the root.
+                            from node2 in room
+                            select node2.Node);
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void DoConvertToHierarchy<TEntity, TKey, TNode>(Func<TEntity, TNode?> convertor, Func<TEntity, TKey?> getKey, Func<TEntity, TKey?> getParentKey, Action<TNode, TNode> firstIsParentOfSecond, TEntity v, Dictionary<TKey, TreeNode<TEntity, TKey, TNode>> parents, Dictionary<TKey, List<TreeNode<TEntity, TKey, TNode>>> orphanage, List<TreeNode<TEntity, TKey, TNode>> explicitNoParentItems) where TKey : struct
+                                                                                                                                                                                                                                                                                                                                                                                                          where TNode : class
+                                                                                                                                                                                                                                                                                                                                                                                                          where TEntity : class
+        {
+            List<TreeNode<TEntity, TKey, TNode>> orphanageRoom;
+
+            if (v == null)
+                return;
+
+            TNode? castedNode = convertor(v);
+            if (castedNode == null)
+                return;
+
+            TreeNode<TEntity, TKey, TNode> node = new TreeNode<TEntity, TKey, TNode>();
+
+            node.Node = castedNode;
+
+            TKey? nodeKey = getKey(v);
+            if (!nodeKey.HasValue)
+                return;
+
+            node.NodeKey = nodeKey.Value;
+            node.ParentKey = getParentKey(v);
+
+            //finding parent of the node
+            if (node.ParentKey.HasValue)
+            {
+                TreeNode<TEntity, TKey, TNode> parentNode;
+
+                if (parents.TryGetValue(node.ParentKey.Value, out parentNode))
+                {
+                    firstIsParentOfSecond(parentNode.Node, node.Node);
+                }
+                else
+                {
+                    //poor node :( no parent found! it should go to the orphanage
+                    if (!orphanage.TryGetValue(node.ParentKey.Value, out orphanageRoom))
+                    {
+                        orphanageRoom = new List<TreeNode<TEntity, TKey, TNode>>();
+                        orphanage.Add(node.ParentKey.Value, orphanageRoom);
+                    }
+
+                    orphanageRoom.Add(node);
+                }
+            }
+            else
+                explicitNoParentItems.Add(node);
+
+            //checking if there are any orphans whose parent is this new node object.
+            if (orphanage.TryGetValue(node.NodeKey, out orphanageRoom))
+            {
+                foreach (var v2 in orphanageRoom)
+                    firstIsParentOfSecond(node.Node, v2.Node);
+
+                orphanage.Remove(node.NodeKey); //there would be no more orphans for this parent, so removing the orphanage room
+            }
+
+            parents.Add(node.NodeKey, node);
+        }
+
         private class TreeNode<TEntity, TKey, TNode> where TKey : struct
         {
             public TKey NodeKey;
