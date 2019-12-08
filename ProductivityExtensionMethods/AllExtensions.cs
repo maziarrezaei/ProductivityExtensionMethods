@@ -1007,9 +1007,6 @@ namespace ProductivityExtensionMethods
         {
             return sources.Distinct(new EqualityComparer<TSource>(comparer, hashCalculator));
         }
-        #endregion
-
-        #region IEnumerable to Hierarchy Extensions
         /// <summary>
         /// Converts a flat list of TEntity to a hierarchy of <typeparamref name="TNode"/>, optimized for very large number of items.
         /// </summary>
