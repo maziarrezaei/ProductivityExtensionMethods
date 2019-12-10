@@ -76,7 +76,7 @@ namespace ProductivityExtensionMethods
             return string.IsNullOrWhiteSpace(str);
         }
         [return: NotNullIfNotNull("defaultValue")]
-        public static string? ValueOrDefault(string? value, string? defaultValue)
+        public static string? ValueOrDefault(this string? value, string? defaultValue)
         {
             return value.IsBlank() ? defaultValue : value;
         }
@@ -89,7 +89,7 @@ namespace ProductivityExtensionMethods
         {
             return string.IsNullOrWhiteSpace(str);
         }
-        public static string? ValueOrDefault(string? value, string? defaultValue)
+        public static string? ValueOrDefault(this string? value, string? defaultValue)
         {
             return value.IsBlank() ? defaultValue : value;
         }
