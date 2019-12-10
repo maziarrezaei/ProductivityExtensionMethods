@@ -1161,19 +1161,19 @@ namespace ProductivityExtensionMethods
         private class EqualityComparer<T> : IEqualityComparer<T>
         {
             private readonly Func<T, T, bool> _comparer;
-            private readonly Func<T, int> _hash;
+            private readonly Func<T, int>? _hash = null;
 
-            public EqualityComparer(Func<T, T, bool> comparer) :
-                this(comparer, o => 0)
+            public EqualityComparer(Func<T, T, bool> comparer)
             {
+                _comparer = comparer;
             }
 
             public EqualityComparer(Func<T, T, bool> comparer, Func<T, int> hash)
             {
                 if (comparer == null)
-                    throw new ArgumentNullException("comparer");
+                    throw new ArgumentNullException(nameof(comparer));
                 if (hash == null)
-                    throw new ArgumentNullException("hash");
+                    throw new ArgumentNullException(nameof(hash));
 
                 _comparer = comparer;
                 _hash = hash;
