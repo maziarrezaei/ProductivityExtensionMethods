@@ -1093,8 +1093,6 @@ namespace ProductivityExtensionMethods
                                                                                                                                                                                                                                                                                                                                                                                                           where TNode : class
                                                                                                                                                                                                                                                                                                                                                                                                           where TEntity : class
         {
-            List<TreeNode<TEntity, TKey, TNode>> orphanageRoom;
-
             if (v == null)
                 return;
 
@@ -1104,15 +1102,12 @@ namespace ProductivityExtensionMethods
 
             TreeNode<TEntity, TKey, TNode> node = new TreeNode<TEntity, TKey, TNode>();
 
-            node.Node = castedNode;
-
             TKey? nodeKey = getKey(v);
             if (!nodeKey.HasValue)
                 return;
 
-            node.NodeKey = nodeKey.Value;
-            node.ParentKey = getParentKey(v);
-
+            node = new TreeNode<TEntity, TKey, TNode>(castedNode, getParentKey(v), nodeKey.Value);
+            
             //finding parent of the node
             if (node.ParentKey.HasValue)
             {
@@ -1125,20 +1120,20 @@ namespace ProductivityExtensionMethods
                 else
                 {
                     //poor node :( no parent found! it should go to the orphanage
-                    if (!orphanage.TryGetValue(node.ParentKey.Value, out orphanageRoom))
+                    if (!orphanage.TryGetValue(node.ParentKey.Value, out var orphanageRoom2))
                     {
-                        orphanageRoom = new List<TreeNode<TEntity, TKey, TNode>>();
-                        orphanage.Add(node.ParentKey.Value, orphanageRoom);
+                        orphanageRoom2 = new List<TreeNode<TEntity, TKey, TNode>>();
+                        orphanage.Add(node.ParentKey.Value, orphanageRoom2);
                     }
 
-                    orphanageRoom.Add(node);
+                    orphanageRoom2.Add(node);
                 }
             }
             else
                 explicitNoParentItems.Add(node);
 
             //checking if there are any orphans whose parent is this new node object.
-            if (orphanage.TryGetValue(node.NodeKey, out orphanageRoom))
+            if (orphanage.TryGetValue(node.NodeKey, out var orphanageRoom))
             {
                 foreach (var v2 in orphanageRoom)
                     firstIsParentOfSecond(node.Node, v2.Node);
@@ -1149,11 +1144,17 @@ namespace ProductivityExtensionMethods
             parents.Add(node.NodeKey, node);
         }
 
-        private class TreeNode<TEntity, TKey, TNode> where TKey : struct
+        private readonly struct TreeNode<TEntity, TKey, TNode> where TKey : struct
         {
-            public TKey NodeKey;
-            public TKey? ParentKey;
-            public TNode Node;
+            public TreeNode(TNode node,TKey? parentKey,TKey nodeKey)
+            {
+                Node = node;
+                ParentKey = parentKey;
+                NodeKey=nodeKey;
+            }
+            public readonly TKey NodeKey;
+            public readonly TKey? ParentKey;
+            public readonly TNode Node;
         }
         #endregion
 
