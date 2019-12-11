@@ -117,7 +117,7 @@ namespace ProductivityExtensionMethods
                 return string.Empty;
             return input.Substring(i + value.Length);
         }
-#if SUPPORT_NETSTANDARD2_1_AND_ABOVE
+#if !SUPPORT_NETSTANDARD2_1_AND_ABOVE
         public static string SubstringAfter(this string input, char value, StringComparison stringComparison = StringComparison.OrdinalIgnoreCase)
         {
             int i = input.IndexOf(value, stringComparison);
@@ -125,7 +125,15 @@ namespace ProductivityExtensionMethods
                 return string.Empty;
             return input.Substring(i + 1);
         }
+        public static StringBuilder StringBuilderJoin(this IEnumerable<string> values, char separator)
+        {
+            return new StringBuilder().AppendJoin(separator, values);
+        }
         public static StringBuilder StringBuilderJoin(this IEnumerable<string> values, string separator)
+        {
+            return new StringBuilder().AppendJoin(separator, values);
+        }
+        public static StringBuilder StringBuilderJoin(this string[] values, char separator)
         {
             return new StringBuilder().AppendJoin(separator, values);
         }
@@ -140,6 +148,28 @@ namespace ProductivityExtensionMethods
             if (i == -1)
                 return string.Empty;
             return input.Substring(i + 1);
+        }
+        public static StringBuilder StringBuilderJoin(this IEnumerable<string> values, char separator)
+        {
+            var result = new StringBuilder();
+            foreach (string st in values)
+                result.Append(st).Append(separator);
+
+            if (result.Length > 0)
+                result.Remove(result.Length - 1, 1);
+
+            return result;
+        }
+        public static StringBuilder StringBuilderJoin(this string[] values, char separator)
+        {
+            var result = new StringBuilder();
+            foreach (string st in values)
+                result.Append(st).Append(separator);
+
+            if (result.Length > 0)
+                result.Remove(result.Length - 1, 1);
+
+            return result;
         }
         public static StringBuilder StringBuilderJoin(this IEnumerable<string> values, string separator)
         {
@@ -228,6 +258,14 @@ namespace ProductivityExtensionMethods
             return string.Join(separator, values);
         }
         public static string StringJoin(this IEnumerable<string> values, string separator)
+        {
+            return string.Join(separator, values);
+        }
+        public static string StringJoin(this string[] values, char separator)
+        {
+            return string.Join(separator, values);
+        }
+        public static string StringJoin(this IEnumerable<string> values, char separator)
         {
             return string.Join(separator, values);
         }
