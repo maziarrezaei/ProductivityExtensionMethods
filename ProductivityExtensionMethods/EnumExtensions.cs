@@ -6,37 +6,29 @@
 #define CORE2_1_AND_ABOVE
 #endif
 
-using System.CodeDom.Compiler;
+using System;
 
-namespace System
+public static partial class ProductivityExtensions
 {
-    [GeneratedCode("ProductivityExtensionMethods", "VersionPlaceholder{D8B1B561-500C-4086-91AA-0714457205DA}")]
-    public static partial class EnumExtensions
+    public static T ToEnumChecked<T>(this int v) where T : Enum
     {
-        #region  Public Methods
+        if (Enum.IsDefined(typeof(T), v))
+            return (T)Enum.ToObject(typeof(T), v);
 
-        public static T ToEnumChecked<T>(this int v) where T : Enum
+        throw new InvalidCastException($"Cannot cast value {v} to enum type {typeof(T)}");
+    }
+
+    public static bool TryToEnum<T>(this int v, out T e) where T : Enum
+    {
+        Type t = typeof(T);
+
+        if (!Enum.IsDefined(t, v))
         {
-            if (Enum.IsDefined(typeof(T), v))
-                return (T)Enum.ToObject(typeof(T), v);
-
-            throw new InvalidCastException($"Cannot cast value {v} to enum type {typeof(T)}");
+            e = (T)Enum.GetValues(t).GetValue(0)!;
+            return false;
         }
 
-        public static bool TryToEnum<T>(this int v, out T e) where T : Enum
-        {
-            Type t = typeof(T);
-
-            if (!Enum.IsDefined(t, v))
-            {
-                e = (T)Enum.GetValues(t).GetValue(0);
-                return false;
-            }
-
-            e = (T)Enum.ToObject(t, v);
-            return true;
-        }
-
-        #endregion
+        e = (T)Enum.ToObject(t, v);
+        return true;
     }
 }

@@ -9,23 +9,27 @@ namespace CodePreprocessor
         static int Main(string[] args)
         {
             const string uniqueComment = "//asdfjwieowilsdkvmmweiowjaX";
+            string code;
 
             if (args.Length == 0)
             {
-                Console.Error.Write("Tool must be supplied with the path to a .cs code file.");
-                return 1;
+                code = new StreamReader(Console.OpenStandardInput()).ReadToEnd();
             }
-            string path = args[0];
-
-            if (!File.Exists(path))
+            else
             {
-                Console.Error.Write("File not found: {0}", path);
-                return 2;
+                string path = args[0];
+
+                if (!File.Exists(path))
+                {
+                    Console.Error.Write("File not found: {0}", path);
+                    return 2;
+                }
+
+                code = File.ReadAllText(path);
             }
 
-            string code = File.ReadAllText(path);
-
-            var ifPreprocessorRegX = new Regex("^#(if|elif|endif|else)",RegexOptions.Multiline|RegexOptions.ExplicitCapture);
+            // Commenting out conditional compile blocks, so they will be processed as well regardless of which symbol is defined.
+            var ifPreprocessorRegX = new Regex("^#(if|elif|endif|else)", RegexOptions.Multiline | RegexOptions.ExplicitCapture);
 
             code = ifPreprocessorRegX.Replace(code, uniqueComment + @"$0");
 

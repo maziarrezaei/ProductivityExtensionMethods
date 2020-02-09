@@ -14,6 +14,9 @@
     <RepositoryUrl>https://github.com/maziarrezaei/ProductivityExtensionMethods</RepositoryUrl>
     <PackageTags>ExtensionMethods Productivity</PackageTags>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <None Update="ProductivityExtension.methods.tt">
       <DesignTime>True</DesignTime>

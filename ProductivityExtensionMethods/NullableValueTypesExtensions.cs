@@ -6,25 +6,17 @@
 #define CORE2_1_AND_ABOVE
 #endif
 
-using System.CodeDom.Compiler;
+using System;
 
-namespace System
+public static partial class ProductivityExtensions
 {
-    [GeneratedCode("ProductivityExtensionMethods", "VersionPlaceholder{D8B1B561-500C-4086-91AA-0714457205DA}")]
-    public static partial class NullableValueTypesExtensions
+    public static bool HasValueAndEquals<T>(this T? source, object target) where T : struct
     {
-        #region  Public Methods
+        return source.HasValue && source.Value.Equals(target);
+    }
 
-        public static bool HasValueAndEquals<T>(this T? source, object target) where T : struct
-        {
-            return source.HasValue && source.Value.Equals(target);
-        }
-
-        public static bool IsNullOrDefault<T>(this T? o) where T : struct
-        {
-            return !o.HasValue || o.Value.Equals(default(T));
-        }
-
-        #endregion
+    public static bool IsNullOrDefault<T>(this T? o) where T : struct
+    {
+        return !o.HasValue || o.Value.Equals(default(T));
     }
 }

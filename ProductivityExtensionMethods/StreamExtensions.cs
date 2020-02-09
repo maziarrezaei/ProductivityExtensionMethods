@@ -6,75 +6,67 @@
 #define CORE2_1_AND_ABOVE
 #endif
 
-using System.CodeDom.Compiler;
+using System.IO;
 
-namespace System.IO
+public static partial class ProductivityExtensions
 {
-    [GeneratedCode("ProductivityExtensionMethods", "VersionPlaceholder{D8B1B561-500C-4086-91AA-0714457205DA}")]
-    public static partial class StreamExtensions
+    /// <summary>
+    ///     Copies an stream to another stream using the buffer passed.
+    /// </summary>
+    /// <param name="source">source stream</param>
+    /// <param name="destination">destination stream</param>
+    /// <param name="buffer">buffer to use during copy</param>
+    /// <returns>number of bytes copied</returns>
+    public static long CopyTo(this Stream source, Stream destination, byte[] buffer)
     {
-        #region  Public Methods
+        long total = 0;
+        int bytesRead;
 
-        /// <summary>
-        ///     Copies an stream to another stream using the buffer passed.
-        /// </summary>
-        /// <param name="source">source stream</param>
-        /// <param name="destination">destination stream</param>
-        /// <param name="buffer">buffer to use during copy</param>
-        /// <returns>number of bytes copied</returns>
-        public static long CopyTo(this Stream source, Stream destination, byte[] buffer)
+        while (true)
         {
-            long total = 0;
-            int bytesRead;
+            bytesRead = source.Read(buffer, 0, buffer.Length);
+            if (bytesRead == 0)
+                return total;
 
-            while (true)
-            {
-                bytesRead = source.Read(buffer, 0, buffer.Length);
-                if (bytesRead == 0)
-                    return total;
+            total += bytesRead;
+            destination.Write(buffer, 0, bytesRead);
+        }
+    }
 
-                total += bytesRead;
-                destination.Write(buffer, 0, bytesRead);
-            }
+    /// <summary>
+    ///     Ensures that the specified number of bytes are read from a stream unless it reaches its end.
+    /// </summary>
+    /// <param name="source">The stream to read from.</param>
+    /// <param name="buffer">
+    ///     An array of bytes. When this method returns, the buffer contains the specified
+    ///     byte array with the values between offset and (offset + count - 1) replaced
+    ///     by the bytes read from the current source.
+    /// </param>
+    /// <param name="offset">
+    ///     The zero-based byte offset in buffer at which to begin storing the data read
+    ///     from the current stream.
+    /// </param>
+    /// <param name="count">The maximum number of bytes to be read from the current stream.</param>
+    /// <returns>
+    ///     The total number of bytes read into the buffer. This is equal to the
+    ///     number of bytes requested or less if the end of the stream has been reached.
+    /// </returns>
+    public static int SafeRead(this Stream source, byte[] buffer, int offset, int count)
+    {
+        int t;
+        int total = 0;
+
+        while (count > 0)
+        {
+            t = source.Read(buffer, offset, count);
+            if (t == 0)
+                break;
+
+            total += t;
+            offset += t;
+            count -= t;
         }
 
-        /// <summary>
-        ///     Ensures that the specified number of bytes are read from a stream unless it reaches its end.
-        /// </summary>
-        /// <param name="source">The stream to read from.</param>
-        /// <param name="buffer">
-        ///     An array of bytes. When this method returns, the buffer contains the specified
-        ///     byte array with the values between offset and (offset + count - 1) replaced
-        ///     by the bytes read from the current source.
-        /// </param>
-        /// <param name="offset">
-        ///     The zero-based byte offset in buffer at which to begin storing the data read
-        ///     from the current stream.
-        /// </param>
-        /// <param name="count">The maximum number of bytes to be read from the current stream.</param>
-        /// <returns>
-        ///     The total number of bytes read into the buffer. This is equal to the
-        ///     number of bytes requested or less if the end of the stream has been reached.
-        /// </returns>
-        public static int SafeRead(this Stream source, byte[] buffer, int offset, int count)
-        {
-            int t;
-            int total = 0;
-
-            while (count > 0)
-            {
-                t = source.Read(buffer, offset, count);
-                if (t == 0)
-                    break;
-
-                total += t;
-                offset += t;
-                count -= t;
-            }
-
-            return total;
-        }
-
-        #endregion
+        return total;
     }
 }

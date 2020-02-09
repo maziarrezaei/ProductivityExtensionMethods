@@ -6,30 +6,22 @@
 #define CORE2_1_AND_ABOVE
 #endif
 
-namespace System.Data
+using System.Data;
+using System.Collections.Generic;
+
+public static partial class ProductivityExtensions
 {
-    using System.CodeDom.Compiler;
-    using System.Collections.Generic;
-
-    [GeneratedCode("ProductivityExtensionMethods", "VersionPlaceholder{D8B1B561-500C-4086-91AA-0714457205DA}")]
-    public static partial class ADOExtensions
+    public static IEnumerable<T> AsEnumerable<T>(this T reader, bool disposeReader = true) where T : IDataReader
     {
-        #region ADO Extensions
-
-        public static IEnumerable<T> AsEnumerable<T>(this T reader, bool disposeReader = true) where T : IDataReader
+        try
         {
-            try
-            {
-                while (reader.Read())
-                    yield return reader;
-            }
-            finally
-            {
-                if (disposeReader)
-                    reader.Close();
-            }
+            while (reader.Read())
+                yield return reader;
         }
-
-        #endregion
+        finally
+        {
+            if (disposeReader)
+                reader.Close();
+        }
     }
 }

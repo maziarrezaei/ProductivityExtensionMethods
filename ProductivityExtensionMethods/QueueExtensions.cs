@@ -6,21 +6,13 @@
 #define CORE2_1_AND_ABOVE
 #endif
 
-using System.CodeDom.Compiler;
+using System.Collections.Generic;
 
-namespace System.Collections.Generic
+public static partial class ProductivityExtensions
 {
-    [GeneratedCode("ProductivityExtensionMethods", "VersionPlaceholder{D8B1B561-500C-4086-91AA-0714457205DA}")]
-    public static partial class QueueExtensions
+    public static void EnqueueAll<T>(this Queue<T> queue, IEnumerable<T> items)
     {
-        #region  Public Methods
-
-        public static void EnqueueAll<T>(this Queue<T> queue, IEnumerable<T> items)
-        {
-            foreach (T item in items)
-                queue.Enqueue(item);
-        }
-
-        #endregion
+        foreach (T item in items)
+            queue.Enqueue(item);
     }
 }

@@ -6,45 +6,38 @@
 #define CORE2_1_AND_ABOVE
 #endif
 
-using System.CodeDom.Compiler;
+using System;
 using System.ComponentModel;
 
-namespace System
+
+public static partial class ProductivityExtensions
 {
-    [GeneratedCode("ProductivityExtensionMethods", "VersionPlaceholder{D8B1B561-500C-4086-91AA-0714457205DA}")]
-    public static partial class EventExtensions
+    public static void TryRaiseEventOnUIThread<TEventArgs>(this EventHandler<TEventArgs> eventHandler, object sender, TEventArgs e)
+        where TEventArgs : EventArgs
     {
-        #region  Public Methods
+        if (eventHandler != null)
+            foreach (EventHandler<TEventArgs> singleCast in eventHandler.GetInvocationList())
+            {
+                if (singleCast.Target is ISynchronizeInvoke syncInvoke && syncInvoke.InvokeRequired)
+                    // Invoke the event on the event subscribers thread
+                    syncInvoke.Invoke(eventHandler, new[] { sender, e });
+                else
+                    // Raise the event on this thread
+                    singleCast(sender, e);
+            }
+    }
 
-        public static void TryRaiseEventOnUIThread<TEventArgs>(this EventHandler<TEventArgs> eventHandler, object sender, TEventArgs e)
-            where TEventArgs : EventArgs
-        {
-            if (eventHandler != null)
-                foreach (EventHandler<TEventArgs> singleCast in eventHandler.GetInvocationList())
-                {
-                    if (singleCast.Target is ISynchronizeInvoke syncInvoke && syncInvoke.InvokeRequired)
-                        // Invoke the event on the event subscribers thread
-                        syncInvoke.Invoke(eventHandler, new[] {sender, e});
-                    else
-                        // Raise the event on this thread
-                        singleCast(sender, e);
-                }
-        }
-
-        public static void TryRaiseEventOnUIThread(this EventHandler eventHandler, object sender, EventArgs e)
-        {
-            if (eventHandler != null)
-                foreach (EventHandler singleCast in eventHandler.GetInvocationList())
-                {
-                    if (singleCast.Target is ISynchronizeInvoke syncInvoke && syncInvoke.InvokeRequired)
-                        // Invoke the event on the event subscribers thread
-                        syncInvoke.Invoke(eventHandler, new[] {sender, e});
-                    else
-                        // Raise the event on this thread
-                        singleCast(sender, e);
-                }
-        }
-
-        #endregion
+    public static void TryRaiseEventOnUIThread(this EventHandler eventHandler, object sender, EventArgs e)
+    {
+        if (eventHandler != null)
+            foreach (EventHandler singleCast in eventHandler.GetInvocationList())
+            {
+                if (singleCast.Target is ISynchronizeInvoke syncInvoke && syncInvoke.InvokeRequired)
+                    // Invoke the event on the event subscribers thread
+                    syncInvoke.Invoke(eventHandler, new[] { sender, e });
+                else
+                    // Raise the event on this thread
+                    singleCast(sender, e);
+            }
     }
 }

@@ -26,12 +26,12 @@
 //~~~~~~~~~~~~~~~~~~~To include the extension methods in the generated code.~~~~~~~~~~~~~~~~~~~~~~~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 <#
- string extensionMethodsSourceCode = PreprocessCode(this.Host.ResolvePath("AllExtensions.cs"));
+ string extensionMethodsSourceCode = GetSourceCode(Path.GetDirectoryName(Host.TemplateFile));
 
- 
- if(extensionMethodsSourceCode==null)
+ if(string.IsNullOrWhiteSpace(extensionMethodsSourceCode))
 	throw new Exception("Cannot read the source code for extension, or preprocess it.");
 
+ extensionMethodsSourceCode = PreprocessCode(extensionMethodsSourceCode);
  extensionMethodsSourceCode  = extensionMethodsSourceCode.Replace("namespace ProductivityExtensionMethods","namespace \<#=System.Runtime.Remoting.Messaging.CallContext.LogicalGetData(\"NamespaceHint\")\#>");
 
  extensionMethodsSourceCode = MakeNullableSyntaxConditional(extensionMethodsSourceCode);
@@ -77,10 +77,74 @@ private bool IsNullableCompatible()
 }
 \#>
 <#+
-private string PreprocessCode(string codePath)
+private string GetSourceCode(string projDir)
 {
+	 string preprocessors = GetPreprocessors(Path.Combine(projDir, "_Common.cs"));
 
-	string executablePath = null;
+            Regex classContentRegx = new Regex(@"(?<usings>(\s*using\s+[^(;]+?;\r?\n)+)|(static\s+partial\s+class\s+ProductivityExtensions\s*\r?\n?(?:(?<ltparen>{)|(?<content-ltparen>})|(?(ltparen)[^{}]*|.*))*)", RegexOptions.ExplicitCapture);
+            Regex customRegionRegex = new Regex(@"#region (?<name>[^\n\r]+)", RegexOptions.ExplicitCapture);
+
+            StringBuilder stb = new StringBuilder();
+
+            stb.AppendLine(preprocessors);
+
+            var parts = (from path in Directory.GetFiles(projDir, "*.cs")
+                         let fileContent = File.ReadAllText(path)
+                         let matches = classContentRegx.Matches(fileContent).Cast<Match>()
+                         let fileName = Path.GetFileNameWithoutExtension(path)
+                         select new
+                         {
+                             Usings = matches.FirstOrDefault(it => it.Groups["usings"].Success)
+                                                       ?.Groups["usings"].Value,
+                             Contents = matches.Where(it => it.Groups["content"].Success)
+                                                          .Select(it => it.Groups["content"].Value)
+                                                          .ToArray(),
+                             FileName = fileName,
+                             RegionName = fileName.StartsWith("_") ? customRegionRegex.Match(fileContent).Groups["name"].Value : fileName
+                         }).ToArray();
+
+            stb.AppendLine(GetUsings(parts.Select(it => it.Usings)))
+               .AppendLine(@"
+#nullable enable
+
+[GeneratedCode(""ProductivityExtensionMethods"", ""VersionPlaceholder{D8B1B561-500C-4086-91AA-0714457205DA}"")]
+public static partial class ProductivityExtensions
+{");
+
+            foreach (var part in parts)
+            {
+                stb.Append("#region ")
+                   .AppendLine(part.RegionName)
+                   .Append(string.Join(Environment.NewLine,part.Contents))
+                   .AppendLine()
+                   .AppendLine("#endregion");
+            }
+
+            stb.Append("}");
+            return stb.ToString();
+}
+
+private string GetUsings(IEnumerable<string> usings)
+{
+    Regex regEx = new Regex(@"using\s+(?<name>[^;]+);", RegexOptions.ExplicitCapture);
+
+    return string.Join(Environment.NewLine, (from it in usings
+                                             from match in regEx.Matches(it).Cast<Match>()
+                                             select match.Groups["name"].Value)
+                                                          .Append("System.CodeDom.Compiler")
+                                                          .Distinct()
+                                                          .OrderBy(it=>it)
+                                                          .Select(it => $"using {it};"));
+}
+
+private string GetPreprocessors(string filePath)
+{
+    string fileContent = File.ReadAllText(filePath);
+    return Regex.Match(fileContent, @"^(\s|\n*)((?<=(^|\n)\s*)#[^\n]+\n\s*)+", RegexOptions.Multiline | RegexOptions.ExplicitCapture).Value;
+}
+private string PreprocessCode(string code)
+{
+    string executablePath = null;
 	
 	foreach(var it in new[]{"Release","Debug"})
 	{
@@ -99,14 +163,18 @@ private string PreprocessCode(string codePath)
 
 	try
 	{
-    ProcessStartInfo psi = new ProcessStartInfo(executablePath, codePath);
+    ProcessStartInfo psi = new ProcessStartInfo(executablePath);
 
     psi.CreateNoWindow = true;
     psi.RedirectStandardOutput = true;
+    psi.RedirectStandardInput = true;
     psi.UseShellExecute = false;
 	psi.WorkingDirectory = System.IO.Directory.GetCurrentDirectory();
 	
     Process p = Process.Start(psi);
+
+    p.StandardInput.Write(code);
+    p.StandardInput.Close();
 
     string s = p.StandardOutput.ReadToEnd();
 
