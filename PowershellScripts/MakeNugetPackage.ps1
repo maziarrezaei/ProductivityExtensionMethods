@@ -56,16 +56,16 @@ if (Test-Path './nuget.exe')
 elseif (Get-Command nuget -ErrorAction SilentlyContinue)
 {
     nuget pack $nuspcPath -OutputDirectory '..\'
-    if(-not $?)
-    {
-       Pause;
-    }
-    exit $LASTEXITCODE;
 }
 else
 {
     Write-Error 'nuget.exe not found. Please either copy next to the script, or add to the Path environment variable.'
     exit 1;
 }
+if(-not $?)
+{
+   Pause;
+}
+exit $LASTEXITCODE;
 
 
