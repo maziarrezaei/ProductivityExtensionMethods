@@ -33,7 +33,7 @@ namespace CodePreprocessor
             context.EnableConcurrentExecution();
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
 
-            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.NullableType, SyntaxKind.TypeConstraint, SyntaxKind.NullableDirectiveTrivia);
+            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.NullableType, SyntaxKind.TypeConstraint, SyntaxKind.NullableDirectiveTrivia, SyntaxKind.SuppressNullableWarningExpression);
         }
 
         #endregion
@@ -84,9 +84,29 @@ namespace CodePreprocessor
 
                     context.ReportDiagnostic(diagnostic2);
                     break;
+                case SyntaxKind.SuppressNullableWarningExpression:
+                    var suppressExpression = (PostfixUnaryExpressionSyntax)context.Node;
+
+                    if (HasNullableRefMarker(suppressExpression))
+                        break;
+
+                    Diagnostic diagnostic3 = Diagnostic.Create(Rule, context.Node.GetLocation(), "!", "directive");
+
+                    context.ReportDiagnostic(diagnostic3);
+
+                    break;
             }
         }
 
+        private static bool HasNullableRefMarker(PostfixUnaryExpressionSyntax suppressExpression)
+        {
+            var op = suppressExpression.OperatorToken;
+
+            return op.TrailingTrivia.Any(it => it.IsKind(SyntaxKind.MultiLineCommentTrivia) && it.ToFullString() == NullableSyntaxMarker.End)
+                   && ((op.LeadingTrivia.Any(it => it.IsKind(SyntaxKind.MultiLineCommentTrivia) && it.ToFullString() == NullableSyntaxMarker.Start))
+                    || op.GetPreviousToken().TrailingTrivia.Any(it => it.IsKind(SyntaxKind.MultiLineCommentTrivia) && it.ToFullString() == NullableSyntaxMarker.Start)
+                    );
+        }
         private static bool HasNullableRefMarker(NullableDirectiveTriviaSyntax nullableDirective)
         {
             return nullableDirective.GetLeadingTrivia().Any(it => it.IsKind(SyntaxKind.MultiLineCommentTrivia) && it.ToFullString() == NullableSyntaxMarker.Start)

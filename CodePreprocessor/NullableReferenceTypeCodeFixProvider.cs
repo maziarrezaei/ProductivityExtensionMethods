@@ -53,8 +53,9 @@ namespace CodePreprocessor
             TypeConstraintSyntax typeConstraint = ancestorsAndSelf.OfType<TypeConstraintSyntax>().FirstOrDefault();
 
             NullableDirectiveTriviaSyntax nullableDirective = root.FindTrivia(diagnosticSpan.Start).GetStructure() as NullableDirectiveTriviaSyntax;
+            PostfixUnaryExpressionSyntax nullableSuppressExpression = ancestorsAndSelf.OfType<PostfixUnaryExpressionSyntax>().FirstOrDefault();
 
-            if (nullableTypeSyntax == null && typeConstraint == null && nullableDirective==null)
+            if (nullableTypeSyntax == null && typeConstraint == null && nullableDirective == null && nullableSuppressExpression == null)
                 return;
 
             // Register a code action that will invoke the fix.
@@ -62,10 +63,12 @@ namespace CodePreprocessor
 
             if (nullableTypeSyntax != null)
                 fix = c => AddNullableComment(context.Document, nullableTypeSyntax, c);
-            else if(typeConstraint!=null)
+            else if (typeConstraint != null)
                 fix = c => AddNullableComment(context.Document, typeConstraint, c);
-            else
+            else if (nullableDirective != null)
                 fix = c => AddNullableComment(context.Document, nullableDirective, c);
+            else
+                fix = c => AddNullableComment(context.Document, nullableSuppressExpression, c);
 
             CodeAction codeAction = CodeAction.Create(title, fix, title);
 
@@ -76,6 +79,16 @@ namespace CodePreprocessor
 
         #region Private Methods
 
+        private async Task<Document> AddNullableComment(Document document, PostfixUnaryExpressionSyntax nullableSuppressExpression, CancellationToken cancellationToken)
+        {
+            SyntaxNode root = await document.GetSyntaxRootAsync().ConfigureAwait(false);
+
+            SyntaxToken oldOperator = nullableSuppressExpression.OperatorToken;
+            var newOperator = oldOperator.WithLeadingTrivia(SyntaxFactory.Comment(NullableReferenceTypeAnalyzer.NullableSyntaxMarker.Start))
+                                         .WithTrailingTrivia(SyntaxFactory.Comment(NullableReferenceTypeAnalyzer.NullableSyntaxMarker.End));
+
+            return document.WithSyntaxRoot(root.ReplaceToken(oldOperator, newOperator));
+        }
         private async Task<Document> AddNullableComment(Document document, NullableDirectiveTriviaSyntax nullableDirectiveTrivia, CancellationToken cancellationToken)
         {
             SyntaxNode root = await document.GetSyntaxRootAsync().ConfigureAwait(false);
@@ -83,14 +96,14 @@ namespace CodePreprocessor
             SyntaxTrivia endOfLine = SyntaxFactory.EndOfLine("\r\n");
 
             var newDirective = nullableDirectiveTrivia.WithLeadingTrivia(SyntaxFactory.Comment(NullableReferenceTypeAnalyzer.NullableSyntaxMarker.Start), endOfLine)
-                                                      .WithTrailingTrivia(endOfLine,SyntaxFactory.Comment(NullableReferenceTypeAnalyzer.NullableSyntaxMarker.End), endOfLine);
+                                                      .WithTrailingTrivia(endOfLine, SyntaxFactory.Comment(NullableReferenceTypeAnalyzer.NullableSyntaxMarker.End), endOfLine);
             return document.WithSyntaxRoot(root.ReplaceNode(nullableDirectiveTrivia, newDirective));
         }
         private async Task<Document> AddNullableComment(Document document, TypeConstraintSyntax typeConstraintNode, CancellationToken cancellationToken)
         {
             var constraintClause = (TypeParameterConstraintClauseSyntax)typeConstraintNode.Parent;
 
-            TypeConstraintSyntax[] otherTypeConstraints = constraintClause.ChildNodes().OfType<TypeConstraintSyntax>().Except(new[] {typeConstraintNode}).ToArray();
+            TypeConstraintSyntax[] otherTypeConstraints = constraintClause.ChildNodes().OfType<TypeConstraintSyntax>().Except(new[] { typeConstraintNode }).ToArray();
 
             SyntaxNode root = await document.GetSyntaxRootAsync().ConfigureAwait(false);
 
@@ -142,7 +155,7 @@ namespace CodePreprocessor
                 newConstraintClause = SyntaxFactory.TypeParameterConstraintClause(newWhereKeyword,
                                                                                   constraintClause.ChildNodes().OfType<IdentifierNameSyntax>().First(),
                                                                                   constraintClause.ChildTokens().First(it => it.IsKind(SyntaxKind.ColonToken)),
-                                                                                  SyntaxFactory.SeparatedList<TypeParameterConstraintSyntax>(new[] {newNode}));
+                                                                                  SyntaxFactory.SeparatedList<TypeParameterConstraintSyntax>(new[] { newNode }));
             }
 
             // for some reason Roslyn adds formatting annotations that results in some strange new lines being added
