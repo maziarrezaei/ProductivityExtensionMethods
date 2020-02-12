@@ -30,16 +30,19 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~Modify next section in order to ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~~~~~~~~~~~~~~~~~~~To include the extension methods in the generated code.~~~~~~~~~~~~~~~~~~~~~~~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 <#
- string extensionMethodsSourceCode = GetSourceCode(Path.GetDirectoryName(Host.TemplateFile));
+ string namespacePlaceholder = "// 0714457205DA";
+ string extensionMethodsSourceCode = GetSourceCode(Path.GetDirectoryName(Host.TemplateFile),namespacePlaceholder);
 
  if(string.IsNullOrWhiteSpace(extensionMethodsSourceCode))
 	throw new Exception("Cannot read the source code for extension, or preprocess it.");
 
  extensionMethodsSourceCode = PreprocessCode(extensionMethodsSourceCode);
- extensionMethodsSourceCode  = extensionMethodsSourceCode.Replace("namespace ProductivityExtensionMethods","namespace \<#=System.Runtime.Remoting.Messaging.CallContext.LogicalGetData(\"NamespaceHint\")\#>");
 
  extensionMethodsSourceCode = MakeNullableSyntaxConditional(extensionMethodsSourceCode);
+
+ extensionMethodsSourceCode = InsertNamespaceConditions(extensionMethodsSourceCode,namespacePlaceholder);
 
  Regex regionFinderRegex=new Regex(@"(?=( |\t)*#region\s+(?<RegionName>[^\r\n]+))(?:(?<ltparen>(?(content)(?(ltparen)( |\t)*#region\s+[^\r\n]*\r\n|)|( |\t)*#region\s+[^\r\n]*\r\n))|(?<content-ltparen>( |\t)*#endregion(\r\n(?=\r\n))?)|(?(ltparen)(?(( |\t)*#region\s+[^\r\n]*\r\n|( |\t)*#endregion(\r\n(?=\r\n))?)|.+?)|))+",  RegexOptions.IgnoreCase|  RegexOptions.Singleline|  RegexOptions.ExplicitCapture);
  var  regionMatches= regionFinderRegex.Matches(extensionMethodsSourceCode);
@@ -50,6 +53,10 @@
 #>
 bool <#=regionName#> = false;
 <#}#>
+
+string ExtensionClassAccessModifier = "public";
+string GeneratedCodeNamespace = "";  //"" to put the class in root global:: namespace, "<Default>" to set to project's default namespace. "YourNamespace" for a fixed namespace of your choice. 
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~DO NOT MODIFY AFTER THIS SECTION~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //~~~~~~~~~~~~~~~~~~~The changes will be overwritten when nuget package is restored~~~~~~~~~~~~~~~~
@@ -82,7 +89,7 @@ private bool IsNullableCompatible()
 }
 \#>
 <#+
-private string GetSourceCode(string projDir)
+private string GetSourceCode(string projDir,string namespacePlaceholder)
 {
 	 string preprocessors = GetPreprocessors(Path.Combine(projDir, "_Common.cs"));
 
@@ -111,9 +118,10 @@ private string GetSourceCode(string projDir)
             stb.AppendLine(GetUsings(parts.Select(it => it.Usings)))
                .AppendLine(@"
 #nullable enable
+").Append(namespacePlaceholder).AppendLine(@"
 
 [GeneratedCode(""ProductivityExtensionMethods"", ""VersionPlaceholder{D8B1B561-500C-4086-91AA-0714457205DA}"")]
-public static partial class ProductivityExtensions
+\<#=ExtensionClassAccessModifier\#> static partial class ProductivityExtensions
 {");
 
             foreach (var part in parts)
@@ -127,6 +135,21 @@ public static partial class ProductivityExtensions
 
             stb.Append("}");
             return stb.ToString();
+}
+
+private string InsertNamespaceConditions(string code,string namespacePlaceholder)
+{
+    string conditionalNamespace = @"\<#
+    
+    string nmspc = GeneratedCodeNamespace;
+
+    if(nmspc == ""<Default>"")
+       nmspc = System.Runtime.Remoting.Messaging.CallContext.LogicalGetData(""NamespaceHint"").ToString();
+
+    if(nmspc != """")
+       Write(""namespace ""+nmspc+"" \r\n{""); 
+    \#>";
+    return code.Replace(namespacePlaceholder,conditionalNamespace) + "\<#=GeneratedCodeNamespace!=\"\"? \"\\r\\n}\" :\"\"\#>";
 }
 
 private string GetUsings(IEnumerable<string> usings)

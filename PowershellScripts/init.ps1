@@ -24,7 +24,10 @@ function ApplyOldConfigToNew([String] $oldConfig, [String] $newConfig)
     # Reads the config values from the old config, and applies them to the new config
     # Returns the new updated config created.
 
-    $variableRegex = [regex] '(?<=\s(?<Name>[a-zA-Z0-9_]+)\s*=\s*)(?<Value>true|false)\s*(?=;)';
+
+    $fixedConfigVariables = 'ExtensionClassAccessModifier','GeneratedCodeNamespace' 
+
+    $variableRegex = [regex] "(?:(?<=bool\s+(?<Name>[a-zA-Z0-9_]+)\s*=\s*)(?<Value>true|false)\s*(?=;))|(?<=\s(?<Name>$($fixedConfigVariables -join '|'))\s*=\s*)(?<Value>[^;]+?)\s*(?=;)";
 
     $oldConfigValues = $variableRegex.Matches($oldConfig) | % { [PSCustomObject]@{ 
                                                                     Name  = $_.Groups['Name'].Value;
