@@ -8,37 +8,79 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 public static partial class ProductivityExtensions
 {
-    public static bool In<T>(this T source, params T[] list)
+#if SUPPORT_NETSTANDARD2_1_AND_ABOVE
+    public static bool In<T>([AllowNull]this T item, params T[] list)
     {
-        return list.Contains(source, (IEqualityComparer<T>?)null);
+        return Array.IndexOf(list, item) >= 0;
     }
 
-    public static bool In<T>(this T source, Func<T, T, bool>? comparer, params T[] list)
+    public static bool In<T>([AllowNull] this T item, Func<T, T, bool>? comparer, params T[] list)
     {
         if (comparer == null)
-            return In(source, (IEqualityComparer<T>?)null, list);
+            return Array.IndexOf(list, item) >= 0;
 
-        return list.Contains(source, new EqualityComparer<T>(comparer));
+        return list.Contains(item, new EqualityComparer<T>(comparer));
     }
 
-    public static bool In<T>(this T source, IEqualityComparer<T>? comparer, params T[] list)
+    public static bool In<T>([AllowNull] this T item, Func<T, T, bool>? comparer, Func<T, int>? hashCalculator, params T[] list)
     {
-        if (null == source)
-            throw new ArgumentNullException("source");
-
         if (comparer == null)
-            return list.Contains(source);
+            return Array.IndexOf(list, item) >= 0;
 
-        return list.Contains(source, comparer);
+        return list.Contains(item, new EqualityComparer<T>(comparer, hashCalculator));
+    }
+
+    public static bool In<T>([AllowNull] this T item, IEqualityComparer<T>? comparer, params T[] list)
+    {
+        if (comparer == null)
+            return Array.IndexOf(list, item) >= 0;
+
+        return list.Contains(item, comparer);
+    }
+
+    public static bool Contains<T>(this T[] array, [AllowNull] T item)
+    {
+        return Array.IndexOf(array, item) >= 0;
+    }
+#else
+    public static bool In<T>(this T item, params T[] list)
+    {
+        return Array.IndexOf(list, item) >= 0;
+    }
+
+    public static bool In<T>(this T item, Func<T, T, bool>? comparer, params T[] list)
+    {
+        if (comparer == null)
+            return Array.IndexOf(list, item) >= 0;
+
+        return list.Contains(item, new EqualityComparer<T>(comparer));
+    }
+
+    public static bool In<T>(this T item, Func<T, T, bool>? comparer, Func<T, int>? hashCalculator, params T[] list)
+    {
+        if (comparer == null)
+            return Array.IndexOf(list, item) >= 0;
+
+        return list.Contains(item, new EqualityComparer<T>(comparer, hashCalculator));
+    }
+
+    public static bool In<T>(this T item, IEqualityComparer<T>? comparer, params T[] list)
+    {
+        if (comparer == null)
+            return Array.IndexOf(list, item) >= 0;
+
+        return list.Contains(item, comparer);
     }
 
     public static bool Contains<T>(this T[] array, T item)
     {
         return Array.IndexOf(array, item) >= 0;
     }
+#endif
 
 }
