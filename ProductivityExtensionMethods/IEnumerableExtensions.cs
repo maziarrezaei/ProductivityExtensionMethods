@@ -214,6 +214,46 @@ public static partial class ProductivityExtensions
                    select node2.Node);
     }
 
+    public static T Max<T>(this IEnumerable<T> enumerable, IComparer<T> comparer)
+    {
+        if (enumerable == null)
+            throw new ArgumentNullException(nameof(enumerable));
+        if (comparer == null)
+            throw new ArgumentNullException(nameof(comparer));
+
+        return enumerable.Aggregate((max, next) => comparer.Compare(max, next) < 0 ? next : max);
+    }
+
+    public static T Min<T>(this IEnumerable<T> enumerable, IComparer<T> comparer)
+    {
+        if (enumerable == null)
+            throw new ArgumentNullException(nameof(enumerable));
+        if (comparer == null)
+            throw new ArgumentNullException(nameof(comparer));
+
+        return enumerable.Aggregate((min, next) => comparer.Compare(min, next) > 0 ? next : min);
+    }
+
+    public static T Max<T>(this IEnumerable<T> enumerable, Func<T,T,int> comparer)
+    {
+        if (enumerable == null)
+            throw new ArgumentNullException(nameof(enumerable));
+        if (comparer == null)
+            throw new ArgumentNullException(nameof(comparer));
+
+        return enumerable.Aggregate((max, next) => comparer(max, next) < 0 ? next : max);
+    }
+
+    public static T Min<T>(this IEnumerable<T> enumerable, Func<T, T, int> comparer)
+    {
+        if (enumerable == null)
+            throw new ArgumentNullException(nameof(enumerable));
+        if (comparer == null)
+            throw new ArgumentNullException(nameof(comparer));
+
+        return enumerable.Aggregate((min, next) => comparer(min, next) > 0 ? next : min);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void DoConvertToHierarchy<TEntity, TKey, TNode>(Func<TEntity, TNode?> convertor, Func<TEntity, TKey?> getKey, Func<TEntity, TKey?> getParentKey, Action<TNode, TNode> firstIsParentOfSecond, TEntity v, Dictionary<TKey, TreeNode<TEntity, TKey, TNode>> parents, Dictionary<TKey, List<TreeNode<TEntity, TKey, TNode>>> orphanage, List<TreeNode<TEntity, TKey, TNode>> explicitNoParentItems) where TKey : struct
                                                                                                                                                                                                                                                                                                                                                                                                                    where TNode : class
