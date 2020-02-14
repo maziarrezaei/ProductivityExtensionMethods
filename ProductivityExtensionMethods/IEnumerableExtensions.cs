@@ -234,7 +234,7 @@ public static partial class ProductivityExtensions
         return enumerable.Aggregate((min, next) => comparer.Compare(min, next) > 0 ? next : min);
     }
 
-    public static T Max<T>(this IEnumerable<T> enumerable, Func<T,T,int> comparer)
+    public static T Max<T>(this IEnumerable<T> enumerable, Func<T, T, int> comparer)
     {
         if (enumerable == null)
             throw new ArgumentNullException(nameof(enumerable));
@@ -263,7 +263,7 @@ public static partial class ProductivityExtensions
     /// <param name="source">The enumerable source</param>
     /// <param name="pickedValue">The first item in the enumerable. Null if the list is empty.</param>
     /// <returns>The remaining items in the enumerable.</returns>
-    public static IEnumerable<T> PickFirst<T>(this IEnumerable<T> source, out T? pickedValue) where T:class
+    public static IEnumerable<T> PickFirst<T>(this IEnumerable<T> source, out T? pickedValue) where T : class
     {
         return PickFirst(source, out pickedValue, it => it);
     }
@@ -317,7 +317,7 @@ public static partial class ProductivityExtensions
     /// <param name="pickedValue">The first item in the enumerable. Null if the list is empty.</param>
     /// <param name="firstElementTranform">Transformation to apply to the first value. Not called if collection is empty.</param>
     /// <returns>The remaining items in the enumerable.</returns>
-    public static IEnumerable<T> PickFirst<T, TResult>(this IEnumerable<T> source, out TResult? pickedValue, Func<T, TResult> firstElementTranform) where TResult:struct
+    public static IEnumerable<T> PickFirst<T, TResult>(this IEnumerable<T> source, out TResult? pickedValue, Func<T, TResult> firstElementTranform) where TResult : struct
     {
         var enumerator = source.GetEnumerator();
 
@@ -380,6 +380,53 @@ public static partial class ProductivityExtensions
         }
     }
 #endif
+
+    public static bool AreAllEqual<T>(this T[] source)
+    {
+        for (int i = 1; i < source.Length; i++)
+            if (source[1]?.GetHashCode() != source[0]?.GetHashCode() || !Equals(source[i], source[0]))
+                return false;
+
+        return true;
+    }
+
+    public static bool AreAllEqual<T>(this T[] source, Func<T, T, bool> comparer)
+    {
+        return AreAllEqual(source, new EqualityComparer<T>(comparer));
+    }
+    public static bool AreAllEqual<T>(this T[] source, Func<T, T, bool> comparer, Func<T, int> hash)
+    {
+        return AreAllEqual(source, new EqualityComparer<T>(comparer, hash));
+    }
+
+    public static bool AreAllEqual<T>(this T[] source, IEqualityComparer<T> comparer)
+    {
+        for (int i = 1; i < source.Length; i++)
+            if (comparer.GetHashCode(source[i]) != comparer.GetHashCode(source[0]) || !comparer.Equals(source[i], source[0]))
+                return false;
+
+        return true;
+    }
+
+    public static bool AreAllEqual<T>(this IEnumerable<T> source)
+    {
+        return AreAllEqual(source, (it1, it2) => Equals(it1, it2));
+    }
+
+    public static bool AreAllEqual<T>(this IEnumerable<T> source, Func<T, T, bool> comparer)
+    {
+        return AreAllEqual(source, new EqualityComparer<T>(comparer));
+    }
+    public static bool AreAllEqual<T>(this IEnumerable<T> source, Func<T, T, bool> comparer, Func<T, int> hash)
+    {
+        return AreAllEqual(source, new EqualityComparer<T>(comparer, hash));
+    }
+
+    public static bool AreAllEqual<T>(this IEnumerable<T> source, IEqualityComparer<T> comparer)
+    {
+        return source.PickFirst(out var firstVal, f => (hash: comparer.GetHashCode(f), value: f))
+                     .All(it => comparer.GetHashCode(it) == firstVal!.Value.hash && comparer.Equals(it, firstVal.Value.value));
+    }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void DoConvertToHierarchy<TEntity, TKey, TNode>(Func<TEntity, TNode?> convertor, Func<TEntity, TKey?> getKey, Func<TEntity, TKey?> getParentKey, Action<TNode, TNode> firstIsParentOfSecond, TEntity v, Dictionary<TKey, TreeNode<TEntity, TKey, TNode>> parents, Dictionary<TKey, List<TreeNode<TEntity, TKey, TNode>>> orphanage, List<TreeNode<TEntity, TKey, TNode>> explicitNoParentItems) where TKey : struct
