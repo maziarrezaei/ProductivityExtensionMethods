@@ -428,6 +428,14 @@ public static partial class ProductivityExtensions
                      .All(it => comparer.GetHashCode(it) == firstVal!.Value.hash && comparer.Equals(it, firstVal.Value.value));
     }
 
+    public static IEnumerable<T> Flatten<T>(this IEnumerable<IEnumerable<T>> source)
+    {
+        // Not using SelectMany to avoid extra lambda call.
+        foreach (var enm in source)
+            foreach (T it in enm)
+                yield return it;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void DoConvertToHierarchy<TEntity, TKey, TNode>(Func<TEntity, TNode?> convertor, Func<TEntity, TKey?> getKey, Func<TEntity, TKey?> getParentKey, Action<TNode, TNode> firstIsParentOfSecond, TEntity v, Dictionary<TKey, TreeNode<TEntity, TKey, TNode>> parents, Dictionary<TKey, List<TreeNode<TEntity, TKey, TNode>>> orphanage, List<TreeNode<TEntity, TKey, TNode>> explicitNoParentItems) where TKey : struct
                                                                                                                                                                                                                                                                                                                                                                                                                    where TNode : class
