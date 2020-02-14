@@ -337,6 +337,12 @@ public static partial class ProductivityExtensions
                 yield return enumerator.Current;
         }
     }
+
+    public static bool AreAllEqual<T>(this IEnumerable<T> source, IEqualityComparer<T> comparer)
+    {
+        return source.PickFirst(out var firstVal, f => (hash: comparer.GetHashCode(f), value: f))
+                     .All(it => comparer.GetHashCode(it) == firstVal!.Value.hash && comparer.Equals(it, firstVal.Value.value));
+    }
 #else
 
     /// <summary>
@@ -378,6 +384,12 @@ public static partial class ProductivityExtensions
             while (enumerator.MoveNext())
                 yield return enumerator.Current;
         }
+    }
+
+    public static bool AreAllEqual<T>(this IEnumerable<T> source, IEqualityComparer<T> comparer)
+    {
+        return source.PickFirst(out var firstVal, f => (hash: comparer.GetHashCode(f), value: f))
+                     .All(it => comparer.GetHashCode(it) == firstVal.hash && comparer.Equals(it, firstVal.value));
     }
 #endif
 
@@ -422,11 +434,6 @@ public static partial class ProductivityExtensions
         return AreAllEqual(source, new EqualityComparer<T>(comparer, hash));
     }
 
-    public static bool AreAllEqual<T>(this IEnumerable<T> source, IEqualityComparer<T> comparer)
-    {
-        return source.PickFirst(out var firstVal, f => (hash: comparer.GetHashCode(f), value: f))
-                     .All(it => comparer.GetHashCode(it) == firstVal!.Value.hash && comparer.Equals(it, firstVal.Value.value));
-    }
 
     public static IEnumerable<T> Flatten<T>(this IEnumerable<IEnumerable<T>> source)
     {
