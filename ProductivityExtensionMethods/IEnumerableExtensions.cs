@@ -254,6 +254,133 @@ public static partial class ProductivityExtensions
         return enumerable.Aggregate((min, next) => comparer(min, next) > 0 ? next : min);
     }
 
+#if SUPPORT_NETSTANDARD2_1_AND_ABOVE
+
+    /// <summary>
+    /// Picks the first item, and returns the rest without exhausting the enumerable.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="source">The enumerable source</param>
+    /// <param name="pickedValue">The first item in the enumerable. Null if the list is empty.</param>
+    /// <returns>The remaining items in the enumerable.</returns>
+    public static IEnumerable<T> PickFirst<T>(this IEnumerable<T> source, out T? pickedValue) where T:class
+    {
+        return PickFirst(source, out pickedValue, it => it);
+    }
+
+    /// <summary>
+    /// Picks the first item, and returns the rest without exhausting the enumerable.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="source">The enumerable source</param>
+    /// <param name="pickedValue">The first item in the enumerable. Null if the list is empty.</param>
+    /// <returns>The remaining items in the enumerable.</returns>
+    public static IEnumerable<T> PickFirst<T>(this IEnumerable<T> source, out T? pickedValue) where T : struct
+    {
+        return PickFirst(source, out pickedValue, it => it);
+    }
+
+    /// <summary>
+    /// Picks the first item, and returns the rest without exhausting the enumerable, with a transformation applied on first item
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="source">The enumerable source</param>
+    /// <param name="pickedValue">The first item in the enumerable. Null if the list is empty.</param>
+    /// <param name="firstElementTranform">Transformation to apply to the first value. Not called if collection is empty.</param>
+    /// <returns>The remaining items in the enumerable.</returns>
+    public static IEnumerable<T> PickFirst<T, TResult>(this IEnumerable<T> source, out TResult? pickedValue, Func<T, TResult> firstElementTranform) where TResult : class
+    {
+        var enumerator = source.GetEnumerator();
+
+        if (!enumerator.MoveNext())
+        {
+            pickedValue = default;
+            return source;
+        }
+
+        pickedValue = firstElementTranform(enumerator.Current);
+
+        return GetRest();
+
+        IEnumerable<T> GetRest()
+        {
+            while (enumerator.MoveNext())
+                yield return enumerator.Current;
+        }
+    }
+
+    /// <summary>
+    /// Picks the first item, and returns the rest without exhausting the enumerable, with a transformation applied on first item
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="source">The enumerable source</param>
+    /// <param name="pickedValue">The first item in the enumerable. Null if the list is empty.</param>
+    /// <param name="firstElementTranform">Transformation to apply to the first value. Not called if collection is empty.</param>
+    /// <returns>The remaining items in the enumerable.</returns>
+    public static IEnumerable<T> PickFirst<T, TResult>(this IEnumerable<T> source, out TResult? pickedValue, Func<T, TResult> firstElementTranform) where TResult:struct
+    {
+        var enumerator = source.GetEnumerator();
+
+        if (!enumerator.MoveNext())
+        {
+            pickedValue = default;
+            return source;
+        }
+
+        pickedValue = firstElementTranform(enumerator.Current);
+
+        return GetRest();
+
+        IEnumerable<T> GetRest()
+        {
+            while (enumerator.MoveNext())
+                yield return enumerator.Current;
+        }
+    }
+#else
+
+    /// <summary>
+    /// Picks the first item, and returns the rest without exhausting the enumerable.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="source">The enumerable source</param>
+    /// <param name="pickedValue">The first item in the enumerable. Null if the list is empty.</param>
+    /// <returns>The remaining items in the enumerable.</returns>
+    public static IEnumerable<T> PickFirst<T>(this IEnumerable<T> source, out T pickedValue)
+    {
+        return PickFirst(source, out pickedValue, it => it);
+    }
+
+    /// <summary>
+    /// Picks the first item, and returns the rest without exhausting the enumerable, with a transformation applied on first item
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="source">The enumerable source</param>
+    /// <param name="pickedValue">The first item in the enumerable. Null if the list is empty.</param>
+    /// <param name="firstElementTranform">Transformation to apply to the first value. Not called if collection is empty.</param>
+    /// <returns>The remaining items in the enumerable.</returns>
+    public static IEnumerable<T> PickFirst<T, TResult>(this IEnumerable<T> source, out TResult pickedValue, Func<T, TResult> firstElementTranform)
+    {
+        var enumerator = source.GetEnumerator();
+
+        if (!enumerator.MoveNext())
+        {
+            pickedValue = default;
+            return source;
+        }
+
+        pickedValue = firstElementTranform(enumerator.Current);
+
+        return GetRest();
+
+        IEnumerable<T> GetRest()
+        {
+            while (enumerator.MoveNext())
+                yield return enumerator.Current;
+        }
+    }
+#endif
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void DoConvertToHierarchy<TEntity, TKey, TNode>(Func<TEntity, TNode?> convertor, Func<TEntity, TKey?> getKey, Func<TEntity, TKey?> getParentKey, Action<TNode, TNode> firstIsParentOfSecond, TEntity v, Dictionary<TKey, TreeNode<TEntity, TKey, TNode>> parents, Dictionary<TKey, List<TreeNode<TEntity, TKey, TNode>>> orphanage, List<TreeNode<TEntity, TKey, TNode>> explicitNoParentItems) where TKey : struct
                                                                                                                                                                                                                                                                                                                                                                                                                    where TNode : class
