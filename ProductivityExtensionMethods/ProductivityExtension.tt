@@ -48,7 +48,7 @@
  var  regionMatches= regionFinderRegex.Matches(extensionMethodsSourceCode);
 
  
- foreach(var regionName in regionMatches.Cast<Match>().Select(GetRegionName).Distinct().Where(IsValidVariableName))
+ foreach(var regionName in regionMatches.Cast<Match>().Select(GetRegionName).Distinct().Where(IsValidVariableName).OrderBy(it=>it,StringComparer.OrdinalIgnoreCase))
  {
 #>
 bool <#=regionName#> = false;
