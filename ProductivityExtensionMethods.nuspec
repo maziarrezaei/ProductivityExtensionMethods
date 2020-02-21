@@ -2,26 +2,23 @@
 <package>
   <metadata>
     <id>ProductivityExtensionMethods</id>
-    <version>1.0.0-beta.6</version>
+    <version>1.0.0-beta.7</version>
     <authors>Maziar Rezaei</authors>
     <owners>Maziar Rezaei</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <license type="expression">Unlicense </license>
     <projectUrl>https://github.com/maziarrezaei/ProductivityExtensionMethods</projectUrl>
-    <description>Extension methods done right! When installed, a T4 Template file is added to the project that, based on the what you enable, generates useful extension methods for certain base class library types and common intefaces that greately increase productivity. Besides, it demonstrates an improved approach to distributing or re-using extension methods.</description>
-    <copyright>Copyright 2019 Maziar Rezaei</copyright>
-    <tags>ExtensionMethods Productivity Extension Methods C#</tags>
-    <repository type="git" url="https://github.com/maziarrezaei/ProductivityExtensionMethods.git" branch="master" commit="1.0.0-beta.6"/>
-    <releaseNotes>- No more dedicated category for ToHierarchy() extension method. Moved to IEnumerable extensions.
-- Null reference will be enabled now if target framework is .Net Standard 2.1 compatible (and above). Before it was based on visual studio version which was wrong since at some point C# lang version became dependent on target framework.
-- Added a range of DateTime extensions to obtain dates relative to the date passed in. GetNext,GetPrevious, GetFirst and GetLast
-- Added SetDate extension on DateTime to change year, month or day.
-- Added SetTime extension on TimeSpan to change portion of timespan, such as only the seconds.
-- Added ValueOrDefault on string, to supply a default value for a string if the variable is blank. Example: fullName.ValueOrDefault("John Doe");
-- Added Contains method on arrays, which is a faster overload than stock Enumerable.Contains.
-- Changed the signature of SetTime on the date time, so there is only one overload now that can be used to change specific time aspects of a date using named parameters. Other overloads were removed.
-- Fixed the issue of leftover nullable reference syntax in conditional compilation regions of code.
-- Performance improvements on some methods when the actual instance passed in is an array or generic List rather than generic IEnumerable.
+    <description>Extension methods done right. Adds a T4 Template allowing you to enable ony what you need. It generates small set of thoroughly selected extension methods for most used types in .net with the goal of increased productivity and code readability.</description>
+    <copyright>Copyright 2020 Maziar Rezaei</copyright>
+    <tags>ExtensionMethods Productivity Extension Methods C# ProductivityExtensionMethods ProductivityExtension ProductivityExtensions</tags>
+    <repository type="git" url="https://github.com/maziarrezaei/ProductivityExtensionMethods.git" branch="master" commit="v1.0.0-beta.7"/>
+    <releaseNotes>- Configurable namespace for the generated code, giving more flexibility to prevent collision when package is added to more than one referenced assembly.
+- Extension methods are now in global root namespace by default, eliminating the need to include usings.
+- Max and Min method for IComparable category
+- PickFirst, Flatten and AreAllEqual methods in IEnumerable category, with proper array overloads.
+- Ensuring that all overloads that accept comparer delegate also have an overload that accept hash calculator delegate for performance improvement for large object comparisons.
+- ADO.net extensions category is dropped. 
+- Overall bug fixes and refactoring of the extension methods.
     </releaseNotes>
     <dependencies>
       <group targetFramework=".NETStandard2.1" />
