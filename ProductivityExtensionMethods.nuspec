@@ -8,9 +8,9 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <license type="expression">Unlicense </license>
     <projectUrl>https://github.com/maziarrezaei/ProductivityExtensionMethods</projectUrl>
-    <description>Extension methods done right. Adds a T4 Template allowing you to enable ony what you need. It generates small set of thoroughly selected extension methods for most used types in .net with the goal of increased productivity and code readability.</description>
+    <description>A new approach to packaging extension methods. Generates a small set of carefully chosen extension methods on essential types for better productivity and code readability. You can enable only the categories you need. </description>
     <copyright>Copyright 2020 Maziar Rezaei</copyright>
-    <tags>ExtensionMethods Productivity Extension Methods C# ProductivityExtensionMethods ProductivityExtension ProductivityExtensions</tags>
+    <tags>ExtensionMethods Productivity Extension Methods C# ProductivityExtensionMethods ProductivityExtension ProductivityExtensions Extensions</tags>
     <repository type="git" url="https://github.com/maziarrezaei/ProductivityExtensionMethods.git" branch="master" commit="v1.0.0-beta.7"/>
     <releaseNotes>- Configurable namespace for the generated code, giving more flexibility to prevent collision when package is added to more than one referenced assembly.
 - Extension methods are now in global root namespace by default, eliminating the need to include usings.
